@@ -63,6 +63,16 @@
 				if($game->favorite == -1 || $game->favorite == NULL) {
 					$game->favorite = $game->homeId;
 					$game->underdog = $game->awayId;
+					$favoriteRank   = $game->homeRank;
+					$underdogRank   = $game->awayRank;
+				} else {
+					if($game->favorite == $game->homeId) {
+						$favoriteRank = $game->homeRank;
+						$underdogRank = $game->awayRank;
+					} else {
+						$favoriteRank = $game->awayRank;
+						$underdogRank = $game->homeRank;
+					}
 				}
 				if($game->spread == 0) {
 					$game->spread = 'PICK';
@@ -82,10 +92,10 @@
 						<?= $game->time ?>
 					</td>
 					<td>
-						<!-- Need to add broadcaster -->
+						<?= $game->network ?>
 					</td>
 					<td>
-						<!-- Need to add favorite rank -->
+						<?= $favoriteRank ?>
 					</td>
 					<td>
 						<?= $teamArray[$game->favorite]->displayName ?>
@@ -94,7 +104,7 @@
 						<?= $teamArray[$game->favorite]->wins . '-' . $teamArray[$game->favorite]->losses ?>
 					</td>
 					<td>
-						<!-- Need to add underdog rank -->
+						<?= $underdogRank ?>
 					</td>
 					<td>
 						<?= $teamArray[$game->underdog]->displayName ?>

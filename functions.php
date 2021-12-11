@@ -438,13 +438,16 @@
 			$this->favorite = $game['favorite'];
 			$this->underdog = $game['underdog'];
 			$this->spread   = $game['spread'];
+			$this->network  = $game['network'];
+			$this->homeRank = $game['homeRank'];
+			$this->awayRank = $game['awayRank'];
 		}
 	}
 
 	function loadGames($dbConn, $year, $week) {
 		// Set up query strings
 		$loadGamesQuery = 'SELECT 
-							id, date, name, homeId, awayId, favorite, underdog, spread
+							id, date, name, homeId, awayId, favorite, underdog, spread, network, homeRank, awayRank 
 							FROM games WHERE
 							week = ? AND year = ?
 							ORDER BY DATE DESC';
