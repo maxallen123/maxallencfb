@@ -185,14 +185,16 @@
 									awayThirdDownConversions  = ?,	-- 36
 									awayFourthDownAttempts    = ?,	-- 37
 									awayFourthDownConversions = ?,	-- 38
-									awayPossessionTime        = ? 	-- 39
-									WHERE id = ?					-- 40';
+									awayPossessionTime        = ?, 	-- 39
+									favorite                  = ?,  -- 40
+									underdog                  = ?,  -- 41
+									spread                    = ?   -- 42
+									WHERE id = ?					-- 43';
 		
 		// Set some common preliminary variables
 		$gameId = $game->id;
 		$homeId = $game->competitions[0]->competitors[0]->id;
 		$awayId = $game->competitions[0]->competitors[1]->id;
-		echo $gameId . "\n";
 
 		// Check and make sure game isn't already in DB, if not, add the game
 		$sqlGame = sqlsrv_query($dbConn, $checkQuery, array($gameId));
@@ -235,22 +237,45 @@
 			4: Forfeit
 			5: Cancelled
 			6: Postponed */
+
+		// Prep Array
+		$queryArray = array();
+		for($x = 0; $x <=43; $x++) {
+			$queryArray[$x] = NULL;
+		}
+		$queryArray[43] = $gameId;	// Set the game ID first
+
+		// Get game details (Moving these earlier because betting odds)
+		$gameUrl = "http://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=" . $gameId;
+		$sum = json_decode(file_get_contents($gameUrl));
+		
+		// Going to go ahead and get betting info
+		if(isset($sum->pickcenter[0]->spread)) {
+			$queryArray[42] = abs($sum->pickcenter[0]->spread);
+			if($queryArray[42] == 0) {
+				$queryArray[40] = -1;
+				$queryArray[41] = -1;
+			} else {
+				if($sum->pickcenter[0]->spread < 0) {
+					$queryArray[40] = $homeId;
+					$queryArray[41] = $awayId;
+				} else {
+					$queryArray[40] = $awayId;
+					$queryArray[41] = $homeId;
+				}
+			}
+		}
+
 		// If game is completed...
 		if($gameStatus >= 3 && $completed != 1) {
-			// Prep Array
-			$queryArray = array();
-			for($x = 0; $x <=39; $x++) {
-				$queryArray[$x] = NULL;
-			}
-
 			// Set variables
-			$queryArray[40] = $gameId;											// Set the game ID first
 			$queryArray[0] = true;													// Game is completed
 			if($gameStatus != 3) {													// If status isn't 3, then game didn't happen
 				$queryArray[1] = true;
 			} else {
 				$queryArray[1] = false;
 			}
+
 			// Don't need to set other variables if game didn't happen...
 			if(!$queryArray[1]) {
 				$queryArray[2] = $game->competitions[0]->neutralSite; 				// Set isNeutral
@@ -265,9 +290,6 @@
 					$queryArray[7] = $homeId;
 				}
 
-				// Get game details
-				$gameUrl = "http://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=" . $gameId;
-				$sum = json_decode(file_get_contents($gameUrl));
 				for($x = 0; $x <= 1; $x++) {										// Cycle through each team
 					if($sum->boxscore->teams[$x]->team->id == $homeId) {			// Set offset for query params
 						$offset = 0;
@@ -304,15 +326,115 @@
 			// FINALLY STORE IN DATABASE
 			sqlsrv_query($dbConn, $updateCompleteQuery, $queryArray);
 		}
+
+		// If game hasn't happened yet, lets still update betting odds
+		if($gameStatus == 1) {
+			sqlsrv_query($dbConn, $updateCompleteQuery, $queryArray);
+		}
 	}
 
 	class team {
 		function __construct($id, $displayName, $shortDisplayName) {
-			$this->id               = $id;
-			$this->displayName      = $displayName;
-			$this->shortDisplayName = $shortDisplayName;
-			$this->pointsFor        = array();
-			$this->pointsAgainst    = array();
+			$this->id                 = $id;
+			$this->displayName        = $displayName;
+			$this->shortDisplayName   = $shortDisplayName;
+			$this->wins               = 0;
+			$this->losses             = 0;
+			$this->pointsFor          = 0;
+			$this->pointsForArray     = array();
+			$this->pointsAgainst      = 0;
+			$this->pointsAgainstArray = array();
+			$this->opponents          = array();
 		}
+
+		function addGame($game) {
+			// Determine if we are home or away
+			if($game['homeId'] == $this->id) {
+				$us = 'home';
+				$them = 'away';
+			} else {
+				$us = 'away';
+				$them = 'home';
+			}
+
+			// Did we win?
+			if($game[$us . 'Score'] > $game[$them . 'Score']) {
+				$this->wins++;
+			} else {
+				$this->losses++;
+			}
+
+			$this->pointsFor     += $game[$us . 'Score'];						// Add our points
+			$this->pointsAgainst += $game[$them . 'Score'];						// Add their points
+			array_push($this->pointsForArray, $game[$us . 'Score']);			// Add our score to array
+			array_push($this->pointsAgainstArray, $game[$them . 'Score']);		// Add their score to array
+			array_push($this->opponents, $game[$them . 'Id']);					// Add opponent to list
+		}
+	}
+
+	function loadTeamArray($dbConn) {
+		// Prep Queries
+		$loadQuery = 'SELECT 
+						id, displayName, shortDisplayName 
+						FROM teams';
+		$gamesQuery = 'SELECT 
+						id, homeId, awayId, homeScore, awayScore 
+						FROM games WHERE 
+						completed = 1 AND isCancelled = 0';
+		
+		// Get teams from SQL
+		$teamRsrc = sqlsrv_query($dbConn, $loadQuery);
+
+		// Proceed through the list
+		$teams = array();
+		while($team = sqlsrv_fetch_array($teamRsrc)) {
+			$teams[$team['id']] = new team($team['id'], $team['displayName'], $team['shortDisplayName']);
+		}
+
+		// Get games from SQL
+		$gameRsrc = sqlsrv_query($dbConn, $gamesQuery);
+		
+		// Proceed through the list
+		while($game = sqlsrv_fetch_array($gameRsrc)) {
+			$teams[$game['homeId']]->addGame($game);
+			$teams[$game['awayId']]->addGame($game);
+		}
+
+		return $teams;
+	}
+
+	class game {
+		function __construct($game) {
+			$this->id       = $game['id'];
+			$this->date     = $game['date'];
+			$this->day      = $game['date']->format('M-j');
+			$this->time     = $game['date']->format('g:i A');
+			$this->name     = $game['name'];
+			$this->homeId   = $game['homeId'];
+			$this->awayId   = $game['awayId'];
+			$this->favorite = $game['favorite'];
+			$this->underdog = $game['underdog'];
+			$this->spread   = $game['spread'];
+		}
+	}
+
+	function loadGames($dbConn, $year, $week) {
+		// Set up query strings
+		$loadGamesQuery = 'SELECT 
+							id, date, name, homeId, awayId, favorite, underdog, spread
+							FROM games WHERE
+							week = ? AND year = ?
+							ORDER BY DATE DESC';
+
+		// Get games
+		
+		$games = sqlsrv_query($dbConn, $loadGamesQuery, array($week, $year));
+		$gameArray = array();
+
+		while ($game = sqlsrv_fetch_array($games)) {
+			array_push($gameArray, new game($game));
+		}
+
+		return $gameArray;
 	}
 ?>
