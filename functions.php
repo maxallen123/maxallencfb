@@ -188,8 +188,11 @@
 									awayPossessionTime        = ?, 	-- 39
 									favorite                  = ?,  -- 40
 									underdog                  = ?,  -- 41
-									spread                    = ?   -- 42
-									WHERE id = ?					-- 43';
+									spread                    = ?,  -- 42
+									network                   = ?,  -- 43
+									homeRank                  = ?,  -- 44
+									awayRank                  = ?   -- 45
+									WHERE id = ?					-- 46';
 		
 		// Set some common preliminary variables
 		$gameId = $game->id;
@@ -240,10 +243,10 @@
 
 		// Prep Array
 		$queryArray = array();
-		for($x = 0; $x <=43; $x++) {
+		for($x = 0; $x <=46; $x++) {
 			$queryArray[$x] = NULL;
 		}
-		$queryArray[43] = $gameId;	// Set the game ID first
+		$queryArray[46] = $gameId;	// Set the game ID first
 
 		// Get game details (Moving these earlier because betting odds)
 		$gameUrl = "http://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=" . $gameId;
@@ -263,6 +266,25 @@
 					$queryArray[40] = $awayId;
 					$queryArray[41] = $homeId;
 				}
+			}
+		}
+
+		// Go ahead and get network and ranks
+		if(isset($sum->header->competitions[0]->broadcasts[0]->media->shortName)) {		// Check for broadcast
+			$queryArray[43] = $sum->header->competitions[0]->broadcasts[0]->media->shortName;
+		}
+		if(isset($sum->header->competitions[0]->competitors[0]->rank)) {				// Check rank on team 0
+			if($sum->header->competitions[0]->competitors[0]->id == $homeId) {
+				$queryArray[44] = $sum->header->competitions[0]->competitors[0]->rank;
+			} else {
+				$queryArray[45] = $sum->header->competitions[0]->competitors[0]->rank;
+			}
+		}
+		if(isset($sum->header->competitions[0]->competitors[1]->rank)) {				// Check rank on team 1
+			if($sum->header->competitions[0]->competitors[1]->id == $homeId) {
+				$queryArray[44] = $sum->header->competitions[0]->competitors[1]->rank;
+			} else {
+				$queryArray[45] = $sum->header->competitions[0]->competitors[1]->rank;
 			}
 		}
 
@@ -410,6 +432,7 @@
 			$this->day      = $game['date']->format('M-j');
 			$this->time     = $game['date']->format('g:i A');
 			$this->name     = $game['name'];
+			$this->network  = $game['network'];
 			$this->homeId   = $game['homeId'];
 			$this->awayId   = $game['awayId'];
 			$this->favorite = $game['favorite'];
