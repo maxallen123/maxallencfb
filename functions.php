@@ -312,6 +312,7 @@
 			$this->displayName      = $displayName;
 			$this->shortDisplayName = $shortDisplayName;
 			$this->pointsFor        = array();
+			$this->pointsAgainst    = array();
 		}
 	}
 ?>
