@@ -19,17 +19,13 @@
 			<th>
 				TV
 			</th>
-			<th>
-			</th>
-			<th>
+			<th colspan = 3>
 				Favorite
 			</th>
 			<th>
 				W-L
 			</th>
-			<th>
-			</th>
-			<th>
+			<th colspan = 3>
 				Underdog
 			</th>
 			<th>
@@ -57,9 +53,10 @@
 	</thead>
 	<tbody>
 		<?php
-			// Load teams
+			// Load teams, games, logos
 			$teamArray = loadTeamArray($dbConn);
 			$gameArray = loadGames($dbConn, 2021, 20);
+			
 			foreach($gameArray as $game) {
 				if($game->favorite == -1 || $game->favorite == NULL) {
 					$game->favorite = $game->homeId;
@@ -99,6 +96,9 @@
 						<?= $favoriteRank ?>
 					</td>
 					<td>
+						<img height=25px width=25px src="<?=fetchLogo($dbConn, $game->favorite)?>">
+					</td>
+					<td>
 						<?= $teamArray[$game->favorite]->displayName ?>
 					</td>
 					<td>
@@ -106,6 +106,9 @@
 					</td>
 					<td>
 						<?= $underdogRank ?>
+					</td>
+					<td>
+						<img height=25px width=25px src="<?=fetchLogo($dbConn, $game->underdog)?>">
 					</td>
 					<td>
 						<?= $teamArray[$game->underdog]->displayName ?>

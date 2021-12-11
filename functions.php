@@ -463,4 +463,16 @@
 
 		return $gameArray;
 	}
+
+	function fetchLogo($dbConn, $teamId) {
+		// Query
+		$logoQuery = "SELECT 
+						href
+						FROM teamLogos WHERE
+						desc_2 = 'default' AND teamId = ?";
+		
+		$logo = sqlsrv_query($dbConn, $logoQuery, array($teamId));
+		
+		return sqlsrv_fetch_array($logo)['href'];
+	}
 ?>
