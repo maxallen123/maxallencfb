@@ -427,37 +427,53 @@
 
 	class game {
 		function __construct($game) {
-			$this->id       = $game['id'];
-			$this->date     = $game['date'];
-			$this->day      = $game['date']->format('M-j');
-			$this->time     = $game['date']->format('g:i A');
-			$this->name     = $game['name'];
-			$this->network  = $game['network'];
-			$this->homeId   = $game['homeId'];
-			$this->awayId   = $game['awayId'];
-			$this->favorite = $game['favorite'];
-			$this->underdog = $game['underdog'];
-			$this->spread   = $game['spread'];
-			$this->network  = $game['network'];
-			$this->homeRank = $game['homeRank'];
-			$this->awayRank = $game['awayRank'];
+			foreach($game as $columnKey => $value) {
+				$this->$columnKey = $value;
+			}
+			$this->day       = $game['date']->format('M-j');
+			$this->time      = $game['date']->format('g:i A');
+
+			// Handle favorites if no line or if pick
+			if($this->favorite == -1 || $this->favorite == NULL) {
+				$this->tableFav = $this->homeId;
+				$this->tableDog = $this->awayId;
+			} else {									// Otherwise table should show the actual
+				$this->tableFav = $this->favorite;
+				$this->tableDog = $this->underdog;
+			}
+			if($this->spread == -1) {					// If odds are even then show PICK
+				$spread = 'PICK';
+			} else if($this->spread != NULL) {			// Otherwise if odds exist, set the spread to be format negative score
+				$this->spread = 0 - $this->spread;
+			}
+
+			if($this->tableFav == $this->homeId) {		// Link ranks to favorite/underdog
+				$this->rankFav  = $this->homeRank;
+				$this->rankDog  = $this->awayRank;
+				$this->scoreFav = $this->homeScore;
+				$this->scoreDog = $this->awayScore;
+			} else {
+				$this->rankFav  = $this->awayRank;
+				$this->rankDog  = $this->homeRank;
+				$this->scoreFav = $this->awayScore;
+				$this->scoreDog = $this->homeScore;
+			}
 		}
 	}
 
 	function loadGames($dbConn, $year, $week) {
 		// Set up query strings
 		$loadGamesQuery = 'SELECT 
-							id, date, name, homeId, awayId, favorite, underdog, spread, network, homeRank, awayRank 
+							id, date, name, homeId, awayId, favorite, underdog, spread, network, homeRank, awayRank, winnerId, homeScore, awayScore 
 							FROM games WHERE
 							week = ? AND year = ?
 							ORDER BY DATE DESC';
 
 		// Get games
-		
 		$games = sqlsrv_query($dbConn, $loadGamesQuery, array($week, $year));
 		$gameArray = array();
 
-		while ($game = sqlsrv_fetch_array($games)) {
+		while ($game = sqlsrv_fetch_array($games, SQLSRV_FETCH_ASSOC)) {
 			array_push($gameArray, new game($game));
 		}
 
