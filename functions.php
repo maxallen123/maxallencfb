@@ -1,5 +1,4 @@
 <?php
-	// test
 
 	function sqlConnect() {
 		$connectionOptions = array(
