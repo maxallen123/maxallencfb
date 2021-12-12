@@ -491,4 +491,36 @@
 		
 		return sqlsrv_fetch_array($logo)['href'];
 	}
+
+	function loadPicks($dbConn, $year, $week) {
+		// Set up query
+		$picksQuery = 'SELECT 
+						*
+						FROM picks WHERE
+						year = ? AND week = ?';
+		
+		// Load picks
+		$queryArray = array($year, $week);
+		$picks = sqlsrv_query($dbConn, $picksQuery, $queryArray);
+
+		// Load games (edited to return all games, to simplify JS)
+		$gamesArray = loadGames($dbConn, $year, $week);
+
+		// Prep array
+		$picksArray = array();
+		foreach($gamesArray as $game) {
+			for($userId = 0; $userId <= 3; $userId++) {
+				$picksArray[$game->id][$userId] = -1;
+			}
+		}
+
+		// Load selected picks
+		if(sqlsrv_has_rows($picks)) {
+			while($pick = sqlsrv_fetch_array($picks)) {
+				$picksArray[$pick['gameId']][$pick['userId']] = $pick['pick'];
+			}
+		}
+
+		return $picksArray;
+	}
 ?>

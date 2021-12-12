@@ -1,12 +1,22 @@
 <?php
 	require('functions.php');
 	$dbConn = sqlConnect();
+	$week = 13;
+	$year = 2021
 ?>
 <html>
 	<head>
 		<link rel="stylesheet" href="./css/bootstrap.min.css">
+		<script src="./js/jquery-3.6.0.min.js"></script>
+		<script src="./js/functions.js"></script>
+		<script language="javascript" type="text/javascript">
+			// Update picks every 5 seconds
+			setInterval(() => updatePicks(), 5000);
+		</script>
 	</head>
 	<body>
+		<input type="hidden" id="week" value="<?= $week ?>">
+		<input type="hidden" id="year" value="<?= $year ?>">
 		<table class="table">
 			<thead>
 				<tr>
@@ -51,10 +61,11 @@
 			</thead>
 			<tbody>
 				<?php
-					// Load teams, games, logos
+					// Load teams, games, picks
 					$teamArray = loadTeamArray($dbConn);
-					$gameArray = loadGames($dbConn, 2021, 14);
-					
+					$gameArray = loadGames($dbConn, $year, $week);
+					$picksArray = loadPicks($dbConn, $year, $week);
+
 					foreach($gameArray as $game) {
 						?>
 						<tr>
@@ -74,7 +85,7 @@
 								<?= $game->rankFav ?>
 							</td>
 							<td id="logoFav-<?= $game->id ?>">
-								<img height=25px width=25px src="<?=fetchLogo($dbConn, $game->tableFav)?>">
+								<img height="25" width="25" src="<?=fetchLogo($dbConn, $game->tableFav)?>">
 							</td>
 							<td id="nameFav-<?= $game->id ?>">
 								<?= $teamArray[$game->tableFav]->displayName ?>
@@ -92,7 +103,7 @@
 								<?= $game->rankDog ?>
 							</td>
 							<td id="logoDog-<?= $game->id ?>">
-								<img height=25px width=25px src="<?=fetchLogo($dbConn, $game->tableDog)?>">
+								<img height="25" width="25" src="<?=fetchLogo($dbConn, $game->tableDog)?>">
 							</td>
 							<td id="nameDog-<?= $game->id ?>">
 								<?= $teamArray[$game->tableDog]->displayName ?>
@@ -109,6 +120,41 @@
 							<td id="spread-<?= $game->id ?>">
 								<?= $game->spread ?>
 							</td>
+							<?php
+								// Picks Loop
+								for($userId = 0; $userId <= 3; $userId++) {
+									if(isset($picksArray[$game->id][$userId])) {
+										$pick = $picksArray[$game->id][$userId];
+									} else {
+										$pick = -1;
+									}
+									echo 
+									"<td>
+										<select class='pick' id='pick-" . $userId . "-" . $game->id . "' autocomplete='off' onChange='setPick(" . $game->id . ", " . $userId . ")'>
+											<option value='-1'";
+									if($pick == -1) {
+										echo " selected";
+									}
+									echo
+												"></option>
+											<option value='" . $game->tableFav . "'";
+									if($pick == $game->tableFav) {
+										echo " selected";
+									}
+									echo
+												">" . $teamArray[$game->tableFav]->displayName . "</option>
+											<option value='" . $game->tableDog . "'";
+									if($pick == $game->tableDog) {
+										echo " selected";
+									}
+									echo
+												">" . $teamArray[$game->tableDog]->displayName . "</option>
+										</select>
+									</td>
+									<td>
+									</td>";
+								}
+							?>
 						</tr>
 						<?php
 					}
@@ -117,3 +163,5 @@
 		</table>
 	</body>
 </html>
+<?php
+print_r($picksArray);
