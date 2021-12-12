@@ -53,33 +53,33 @@
 				<?php
 					// Load teams, games, logos
 					$teamArray = loadTeamArray($dbConn);
-					$gameArray = loadGames($dbConn, 2021, 15);
+					$gameArray = loadGames($dbConn, 2021, 14);
 					
 					foreach($gameArray as $game) {
 						?>
 						<tr>
-							<td>
+							<td id="day-<?= $game->id ?>">
 								<?= $game->day ?>
 							</td>
-							<td>
+							<td id="name-<?= $game->id ?>">
 								<?= $game->name ?>
 							</td>
-							<td>
+							<td id="time-<?= $game->id ?>">
 								<?= $game->time ?>
 							</td>
-							<td>
+							<td id="network-<?= $game->id ?>">
 								<?= $game->network ?>
 							</td>
-							<td>
+							<td id="rankFav-<?= $game->id ?>">
 								<?= $game->rankFav ?>
 							</td>
-							<td>
+							<td id="logoFav-<?= $game->id ?>">
 								<img height=25px width=25px src="<?=fetchLogo($dbConn, $game->tableFav)?>">
 							</td>
-							<td>
+							<td id="nameFav-<?= $game->id ?>">
 								<?= $teamArray[$game->tableFav]->displayName ?>
 							</td>
-							<td>
+							<td id="WLorPointsFav-<?= $game->id ?>">
 								<?php
 									if($game->winnerId != NULL) {
 										echo $game->scoreFav;
@@ -88,16 +88,16 @@
 									}
 								?>
 							</td>
-							<td>
+							<td id="rankDog-<?= $game->id ?>">
 								<?= $game->rankDog ?>
 							</td>
-							<td>
+							<td id="logoDog-<?= $game->id ?>">
 								<img height=25px width=25px src="<?=fetchLogo($dbConn, $game->tableDog)?>">
 							</td>
-							<td>
+							<td id="nameDog-<?= $game->id ?>">
 								<?= $teamArray[$game->tableDog]->displayName ?>
 							</td>
-							<td>
+							<td id="WLorPointsDog-<?= $game->id ?>">
 								<?php 
 									if($game->winnerId != NULL) {
 										echo $game->scoreDog;
@@ -106,7 +106,7 @@
 									}
 								?>
 							</td>
-							<td>
+							<td id="spread-<?= $game->id ?>">
 								<?= $game->spread ?>
 							</td>
 						</tr>
