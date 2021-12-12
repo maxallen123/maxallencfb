@@ -163,5 +163,3 @@
 		</table>
 	</body>
 </html>
-<?php
-print_r($picksArray);
