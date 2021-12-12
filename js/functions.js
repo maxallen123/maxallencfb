@@ -8,7 +8,7 @@ function setPick(gameId, userId) {
 	// Call AJAX update
 	$.ajax({
 		method: "GET",
-		url: "../ajax/ajax.php",
+		url: "./ajax/ajax.php",
 		data: {
 			function: 'setPick',
 			week: week,
@@ -31,7 +31,7 @@ function updatePicks() {
 
 	$.ajax({
 		method: "GET",
-		url: "../ajax/ajax.php",
+		url: "./ajax/ajax.php",
 		data: {
 			function: 'updatePicks',
 			week: week,

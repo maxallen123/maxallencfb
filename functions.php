@@ -191,8 +191,9 @@
 									spread                    = ?,  -- 42
 									network                   = ?,  -- 43
 									homeRank                  = ?,  -- 44
-									awayRank                  = ?   -- 45
-									WHERE id = ?					-- 46';
+									awayRank                  = ?,  -- 45
+									status                    = ?	-- 46
+									WHERE id = ?					-- 47';
 		
 		// Set some common preliminary variables
 		$gameId = $game->id;
@@ -243,10 +244,11 @@
 
 		// Prep Array
 		$queryArray = array();
-		for($x = 0; $x <=46; $x++) {
+		for($x = 0; $x <=47; $x++) {
 			$queryArray[$x] = NULL;
 		}
-		$queryArray[46] = $gameId;	// Set the game ID first
+		$queryArray[47] = $gameId;	   // Set the game ID first
+		$queryArray[46] = $gameStatus; // Set game status
 
 		// Get game details (Moving these earlier because betting odds)
 		$gameUrl = "http://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=" . $gameId;
@@ -349,7 +351,7 @@
 			sqlsrv_query($dbConn, $updateCompleteQuery, $queryArray);
 		}
 
-		// If game hasn't happened yet, lets still update betting odds
+		// If game hasn't happened yet, lets still update betting odds, ranks, status
 		if($gameStatus == 1) {
 			sqlsrv_query($dbConn, $updateCompleteQuery, $queryArray);
 		}
@@ -464,7 +466,7 @@
 	function loadGames($dbConn, $year, $week) {
 		// Set up query strings
 		$loadGamesQuery = 'SELECT 
-							id, date, name, homeId, awayId, favorite, underdog, spread, network, homeRank, awayRank, winnerId, homeScore, awayScore 
+							id, date, name, homeId, awayId, favorite, underdog, spread, network, homeRank, awayRank, winnerId, homeScore, awayScore, status 
 							FROM games WHERE
 							week = ? AND year = ?
 							ORDER BY DATE DESC';
@@ -512,6 +514,7 @@
 			for($userId = 0; $userId <= 3; $userId++) {
 				$picksArray[$game->id][$userId] = -1;
 			}
+			$picksArray[$game->id]['game'] = $game;
 		}
 
 		// Load selected picks
@@ -520,6 +523,7 @@
 				$picksArray[$pick['gameId']][$pick['userId']] = $pick['pick'];
 			}
 		}
+
 
 		return $picksArray;
 	}
