@@ -1,4 +1,6 @@
 <?php
+	// test
+
 	function sqlConnect() {
 		$connectionOptions = array(
 			"Database" => "football",
