@@ -1,7 +1,7 @@
 <?php
 	require('functions.php');
 	$dbConn = sqlConnect();
-	$week = 13;
+	$week = 20;
 	$year = 2021
 ?>
 <html>

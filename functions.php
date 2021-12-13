@@ -139,7 +139,7 @@
 	}
 
 	class team {
-		function __construct($id, $displayName, $shortDisplayName, $abbreviation) {
+		function __construct($id, $displayName, $shortDisplayName, $abbreviation, $comedyName) {
 			$this->id                 = $id;
 			$this->displayName        = $displayName;
 			$this->shortDisplayName   = $shortDisplayName;
@@ -151,6 +151,10 @@
 			$this->pointsAgainst      = 0;
 			$this->pointsAgainstArray = array();
 			$this->opponents          = array();
+
+			if($comedyName != NULL) {
+				$this->displayName = $comedyName;
+			}
 		}
 
 		function addGame($game) {
@@ -181,7 +185,7 @@
 	function loadTeamArray($dbConn) {
 		// Prep Queries
 		$loadQuery = 'SELECT 
-						id, displayName, shortDisplayName, abbreviation 
+						id, displayName, shortDisplayName, abbreviation, comedyName 
 						FROM teams';
 		$gamesQuery = 'SELECT 
 						id, homeId, awayId, homeScore, awayScore 
@@ -194,7 +198,7 @@
 		// Proceed through the list
 		$teams = array();
 		while($team = sqlsrv_fetch_array($teamRsrc)) {
-			$teams[$team['id']] = new team($team['id'], $team['displayName'], $team['shortDisplayName'], $team['abbreviation']);
+			$teams[$team['id']] = new team($team['id'], $team['displayName'], $team['shortDisplayName'], $team['abbreviation'], $team['comedyName']);
 		}
 
 		// Get games from SQL

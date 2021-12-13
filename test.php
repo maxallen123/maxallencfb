@@ -1,5 +1,5 @@
 <?php
 	require('functions.php');
 	$dbConn = sqlConnect();
-	updateWeek($dbConn, 2021, 8);
+	updateWeek($dbConn, 2021, 20);
 ?>
