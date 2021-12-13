@@ -1,4 +1,6 @@
 <?php
+	require('updateFunctions.php');
+
 	function sqlConnect() {
 		$connectionOptions = array(
 			"Database" => "football",
@@ -136,232 +138,12 @@
 		}
 	}
 
-	function addGame($dbConn, $game, $year, $seasonType, $week) {
-		// Set up query strings
-		$checkQuery          = 'SELECT * FROM games 
-									WHERE 
-									id = ?';
-		$newQuery            = 'INSERT INTO games 
-									(id, year, week, date, name, homeId, awayId)
-									VALUES 
-									(?, ?, ?, ?, ?, ?, ?)';
-		$updateCompleteQuery = 'UPDATE games SET 
-									completed                 = ?,	-- 0
-									isCancelled               = ?,	-- 1
-									isNeutral                 = ?,	-- 2
-									isConference              = ?,	-- 3
-									homeScore                 = ?,	-- 4
-									awayScore                 = ?,	-- 5
-									winnerId                  = ?,	-- 6
-									loserId                   = ?,	-- 7
-									homeYards                 = ?,	-- 8
-									homeRushingPlays          = ?,	-- 9
-									homeRushingYards          = ?,	-- 10
-									homePassingAttempts       = ?,	-- 11
-									homePassingComp           = ?,	-- 12
-									homePassingYards          = ?,	-- 13
-									homePenalties             = ?,	-- 14
-									homePenaltyYards          = ?,	-- 15
-									homeTurnoversFumble       = ?,	-- 16
-									homeTurnoversInt          = ?,	-- 17
-									homeFirstDowns            = ?,	-- 18
-									homeThirdDownAttempts     = ?,	-- 19
-									homeThirdDownConversions  = ?,	-- 20
-									homeFourthDownAttempts    = ?,	-- 21
-									homeFourthDownConversions = ?,	-- 22
-									homePossessionTime        = ?,	-- 23
-									awayYards                 = ?,	-- 24
-									awayRushingPlays          = ?,	-- 25
-									awayRushingYards          = ?,	-- 26
-									awayPassingAttempts       = ?,	-- 27
-									awayPassingComp           = ?,	-- 28
-									awayPassingYards          = ?,	-- 29
-									awayPenalties             = ?,	-- 30
-									awayPenaltyYards          = ?,	-- 31
-									awayTurnoversFumble       = ?,	-- 32
-									awayTurnoversInt          = ?,	-- 33
-									awayFirstDowns            = ?,	-- 34
-									awayThirdDownAttempts     = ?,	-- 35
-									awayThirdDownConversions  = ?,	-- 36
-									awayFourthDownAttempts    = ?,	-- 37
-									awayFourthDownConversions = ?,	-- 38
-									awayPossessionTime        = ?, 	-- 39
-									favorite                  = ?,  -- 40
-									underdog                  = ?,  -- 41
-									spread                    = ?,  -- 42
-									network                   = ?,  -- 43
-									homeRank                  = ?,  -- 44
-									awayRank                  = ?,  -- 45
-									status                    = ?	-- 46
-									WHERE id = ?					-- 47';
-		
-		// Set some common preliminary variables
-		$gameId = $game->id;
-		$homeId = $game->competitions[0]->competitors[0]->id;
-		$awayId = $game->competitions[0]->competitors[1]->id;
-
-		// Check and make sure game isn't already in DB, if not, add the game
-		$sqlGame = sqlsrv_query($dbConn, $checkQuery, array($gameId));
-		if(!sqlsrv_has_rows($sqlGame)) {
-			$queryArray = array();
-
-			// Set Variables
-			$queryArray[0] = $gameId;										// Game ID
-			$queryArray[1] = $year;											// Season
-			if($seasonType == 3) {											// If bowl, assign week 20
-				$week = 20;
-			}
-			$queryArray[2] = $week;											// Week
-			$queryArray[3] = date('Y-m-d H:i:s', (strtotime($game->date) + 60 * 60));
-			if(isset($game->competitions[0]->notes[0]->headline)) {			// Name, if exists
-				$queryArray[4] = $game->competitions[0]->notes[0]->headline;
-			} else {
-				$queryArray[4] = NULL;
-			}
-			$queryArray[5] = $homeId;	// Home Team ID
-			$queryArray[6] = $awayId;	// Away Team ID
-
-			// Add Game
-			sqlsrv_query($dbConn, $newQuery, $queryArray);
-			$queryArray = array();
-			$completed = 0;													// Use this later to check if game was already completed
-		} else {
-			if(sqlsrv_fetch_array($sqlGame)['completed'] == 1) {
-				$completed = 1;
-			} else {
-				$completed = 0;
-			}
-		}
-
-		$gameStatus = $game->status->type->id;
-		/* Status Flags:
-			1: Scheduled
-			2: ??? (In progress?)
-			3: Complete
-			4: Forfeit
-			5: Cancelled
-			6: Postponed */
-
-		// Prep Array
-		$queryArray = array();
-		for($x = 0; $x <=47; $x++) {
-			$queryArray[$x] = NULL;
-		}
-		$queryArray[47] = $gameId;	   // Set the game ID first
-		$queryArray[46] = $gameStatus; // Set game status
-
-		// Get game details (Moving these earlier because betting odds)
-		$gameUrl = "http://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=" . $gameId;
-		$sum = json_decode(file_get_contents($gameUrl));
-		
-		// Going to go ahead and get betting info
-		if(isset($sum->pickcenter[0]->spread)) {
-			$queryArray[42] = abs($sum->pickcenter[0]->spread);
-			if($queryArray[42] == 0) {
-				$queryArray[40] = -1;
-				$queryArray[41] = -1;
-			} else {
-				if($sum->pickcenter[0]->spread < 0) {
-					$queryArray[40] = $homeId;
-					$queryArray[41] = $awayId;
-				} else {
-					$queryArray[40] = $awayId;
-					$queryArray[41] = $homeId;
-				}
-			}
-		}
-
-		// Go ahead and get network and ranks
-		if(isset($sum->header->competitions[0]->broadcasts[0]->media->shortName)) {		// Check for broadcast
-			$queryArray[43] = $sum->header->competitions[0]->broadcasts[0]->media->shortName;
-		}
-		if(isset($sum->header->competitions[0]->competitors[0]->rank)) {				// Check rank on team 0
-			if($sum->header->competitions[0]->competitors[0]->id == $homeId) {
-				$queryArray[44] = $sum->header->competitions[0]->competitors[0]->rank;
-			} else {
-				$queryArray[45] = $sum->header->competitions[0]->competitors[0]->rank;
-			}
-		}
-		if(isset($sum->header->competitions[0]->competitors[1]->rank)) {				// Check rank on team 1
-			if($sum->header->competitions[0]->competitors[1]->id == $homeId) {
-				$queryArray[44] = $sum->header->competitions[0]->competitors[1]->rank;
-			} else {
-				$queryArray[45] = $sum->header->competitions[0]->competitors[1]->rank;
-			}
-		}
-
-		// If game is completed...
-		if($gameStatus >= 3 && $completed != 1) {
-			// Set variables
-			$queryArray[0] = true;													// Game is completed
-			if($gameStatus != 3) {													// If status isn't 3, then game didn't happen
-				$queryArray[1] = true;
-			} else {
-				$queryArray[1] = false;
-			}
-
-			// Don't need to set other variables if game didn't happen...
-			if(!$queryArray[1]) {
-				$queryArray[2] = $game->competitions[0]->neutralSite; 				// Set isNeutral
-				$queryArray[3] = $game->competitions[0]->conferenceCompetition;		// Set whether it's in conference or OOC
-				$queryArray[4] = $game->competitions[0]->competitors[0]->score;		// Home score
-				$queryArray[5] = $game->competitions[0]->competitors[1]->score;		// Away score
-				if($queryArray[4] > $queryArray[5]) {								// Set winners and losers
-					$queryArray[6] = $homeId;
-					$queryArray[7] = $awayId;
-				} else {
-					$queryArray[6] = $awayId;
-					$queryArray[7] = $homeId;
-				}
-
-				for($x = 0; $x <= 1; $x++) {										// Cycle through each team
-					if($sum->boxscore->teams[$x]->team->id == $homeId) {			// Set offset for query params
-						$offset = 0;
-					} else {
-						$offset = 16;
-					}
-					if(isset($sum->boxscore->teams[$x]->statistics[ 3])) { 										// Check to see if we even have stats!
-						$queryArray[ 8 + $offset] = $sum->boxscore->teams[$x]->statistics[ 3]->displayValue;	// Set total yards
-						$queryArray[ 9 + $offset] = $sum->boxscore->teams[$x]->statistics[ 8]->displayValue;	// Set rushing plays
-						$queryArray[10 + $offset] = $sum->boxscore->teams[$x]->statistics[ 7]->displayValue;	// Set rushing yards
-						$passing = explode('-',     $sum->boxscore->teams[$x]->statistics[ 5]->displayValue);	// Need to explode the passing stat because it's comp-attempts
-						$queryArray[11 + $offset] = $passing[1];												// Set Passing Attempts
-						$queryArray[12 + $offset] = $passing[0];												// Set Passing Completions
-						$queryArray[13 + $offset] = $sum->boxscore->teams[$x]->statistics[ 4]->displayValue;	// Set Passing Yards
-						$penalties = explode('-',   $sum->boxscore->teams[$x]->statistics[10]->displayValue);	// Need to explode penalties because its # penalties-yards
-						$queryArray[14 + $offset] = $penalties[0];												// Set Penalties
-						$queryArray[15 + $offset] = $penalties[1];												// Set Penalty Yards
-						$queryArray[16 + $offset] = $sum->boxscore->teams[$x]->statistics[12]->displayValue;	// Set fumbles
-						$queryArray[17 + $offset] = $sum->boxscore->teams[$x]->statistics[13]->displayValue;	// Set INTs
-						$queryArray[18 + $offset] = $sum->boxscore->teams[$x]->statistics[ 0]->displayValue;	// Set first downs
-						$thirdDowns = explode('-',  $sum->boxscore->teams[$x]->statistics[ 1]->displayValue);	// Explode third downs, conversions-attempts
-						$queryArray[19 + $offset] = $thirdDowns[1];												// Set third down attempts
-						$queryArray[20 + $offset] = $thirdDowns[0];												// Set third down conversions
-						$fourthDowns = explode('-', $sum->boxscore->teams[$x]->statistics[ 2]->displayValue);	// Explode fourth downs, conversions-attempts
-						$queryArray[21 + $offset] = $fourthDowns[1];											// Set fourth down attempts
-						$queryArray[22 + $offset] = $fourthDowns[0];											// Set fourth down conversions
-						$possession = explode(':', $sum->boxscore->teams[$x]->statistics[14]->displayValue);	// Explode time of possession
-						$possessionTime = $possession[0] * 60 + $possession[1];									// Set time of possesion in seconds
-						$queryArray[23 + $offset] = $possessionTime;											// Store time of possession
-					}
-				}
-			}
-			// We're done setting variables
-			// FINALLY STORE IN DATABASE
-			sqlsrv_query($dbConn, $updateCompleteQuery, $queryArray);
-		}
-
-		// If game hasn't happened yet, lets still update betting odds, ranks, status
-		if($gameStatus == 1) {
-			sqlsrv_query($dbConn, $updateCompleteQuery, $queryArray);
-		}
-	}
-
 	class team {
-		function __construct($id, $displayName, $shortDisplayName) {
+		function __construct($id, $displayName, $shortDisplayName, $abbreviation) {
 			$this->id                 = $id;
 			$this->displayName        = $displayName;
 			$this->shortDisplayName   = $shortDisplayName;
+			$this->abbreviation       = $abbreviation;
 			$this->wins               = 0;
 			$this->losses             = 0;
 			$this->pointsFor          = 0;
@@ -399,7 +181,7 @@
 	function loadTeamArray($dbConn) {
 		// Prep Queries
 		$loadQuery = 'SELECT 
-						id, displayName, shortDisplayName 
+						id, displayName, shortDisplayName, abbreviation 
 						FROM teams';
 		$gamesQuery = 'SELECT 
 						id, homeId, awayId, homeScore, awayScore 
@@ -412,7 +194,7 @@
 		// Proceed through the list
 		$teams = array();
 		while($team = sqlsrv_fetch_array($teamRsrc)) {
-			$teams[$team['id']] = new team($team['id'], $team['displayName'], $team['shortDisplayName']);
+			$teams[$team['id']] = new team($team['id'], $team['displayName'], $team['shortDisplayName'], $team['abbreviation']);
 		}
 
 		// Get games from SQL
@@ -527,4 +309,46 @@
 
 		return $picksArray;
 	}
+
+	// Function to update the database for a given week, does not return anything
+	function updateWeek($dbConn, $year, $week) {
+		// Set up query
+		$pullGames   = 'SELECT * 
+						FROM games 
+						WHERE year = ? AND week = ?';
+		
+		// Set up query array to pull games
+		$pullArray = array($year, $week);
+
+		// Pull games
+		$games = sqlsrv_query($dbConn, $pullGames, $pullArray);
+
+		// Build an array of existing games
+		$gamesArray = array();
+		if(sqlsrv_has_rows($games)) {
+			while($sqlGame = sqlsrv_fetch_array($games, SQLSRV_FETCH_ASSOC)) {
+				$gamesArray[$sqlGame['id']] = new game($sqlGame);
+			}
+		}
+	
+		$scoreboard = pullScoreboard($year, $week);
+
+		// Go through the ESPN scoreboard...
+		foreach($scoreboard->events as $game) {
+			$gameId = $game->id;							// We're going to reference this a lot
+			echo $gameId . "\n";
+			if(isset($gamesArray[$gameId])) {				// If we already have the game in our database...
+				if(!($gamesArray[$gameId]->completed)) {	// If we haven't completed it, we'll update (otherwise, nothing)
+					updateGame($dbConn, $game, $gamesArray[$gameId]);
+				}
+			} else {										// If we don't have the game in our DB, we'll create it
+				newGame($dbConn, $gameId, $year, $week);
+				$gamesArray[$gameId]['favorite'] = NULL;	// Only place we use sql info is if copying the line if game is in progress or cancelled, so only params we need to set
+				$gamesArray[$gameId]['underdog'] = NULL;
+				$gamesArray[$gameId]['spread']   = NULL;
+				updateGame($dbConn, $game, $gamesArray[$gameId]);
+			}
+		}
+	}
+
 ?>
