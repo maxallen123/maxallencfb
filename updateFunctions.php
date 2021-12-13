@@ -1,7 +1,6 @@
 <?php
-	//include('functions.php');
 
-	// Generate query to update games
+// Generate query to update games
 	function setUpdateQuery() {
 		return 'UPDATE games SET 
 					date                      = ?,  -- 0
@@ -58,7 +57,7 @@
 				WHERE id = ?						-- 51';
 	}
 
-	// Return basic info on team
+// Return basic info on team
 	function fetchTeamInfo($dbConn, $teamId) {
 		$fetchQuery = 'SELECT 
 						id, displayName, shortDisplayName, abbreviation
@@ -69,7 +68,7 @@
 		return sqlsrv_fetch_array($team);
 	}
 
-	// Function to pull the ESPN scoreboard for a given week, returns decoded json object
+// Function to pull the ESPN scoreboard for a given week, returns decoded json object
 	function pullScoreboard($year, $week) {
 		// Pull the scoreboard from ESPN for the week
 		if($week == 20) {		// We're doing this different from ESPN, so if we use $week = 20, we mean bowl games
@@ -104,20 +103,20 @@
 		return $scoreboard;
 	}
 
-	// Set gate date, name, and broadcast network
+// Set gate date, name, and broadcast network
 	function updateDateNameNetwork($sbGame, $queryArray) {
 		$queryArray[0] = date('Y-m-d H:i:s', (strtotime($sbGame->date) + 60 * 60));		// Date, adjust to eastern time
 		if(isset($sbGame->competitions[0]->notes[0]->headline)) {						// Name, if exists
 			$queryArray[1] = $sbGame->competitions[0]->notes[0]->headline;
 		}
 		if(isset($sbGame->competitions[0]->broadcasts[0]->names[0])) {					// Set Network name
-			$queryArray[43] = $sbGame->competitions[0]->broadcasts[0]->names[0];
+			$queryArray[2] = $sbGame->competitions[0]->broadcasts[0]->names[0];
 		}
 
 		return $queryArray;
 	}
 
-	//Set home and away id's
+//Set home and away id's
 	function updateHomeAway($sbGame, $queryArray) {
 		if($sbGame->competitions[0]->competitors[0]->homeAway == 'home') {
 			$queryArray[3] = $sbGame->competitions[0]->competitors[0]->id;
@@ -130,15 +129,17 @@
 		return $queryArray;
 	}
 
-	// Get ranks for teams
+// Get ranks for teams
 	function updateRanks($sbGame, $queryArray) {
 		// Determine which competitor is home, then set rank
-		if($sbGame->competitions[0]->competitors[0]->id == $queryArray[3]) {
-			$queryArray[5] = $sbGame->competitions[0]->competitors[0]->curatedRank->current;
-			$queryArray[6] = $sbGame->competitions[0]->competitors[1]->curatedRank->current;
-		} else {
-			$queryArray[6] = $sbGame->competitions[0]->competitors[0]->curatedRank->current;
-			$queryArray[5] = $sbGame->competitions[0]->competitors[1]->curatedRank->current;
+		if(isset($sbGame->competitions[0]->competitors[0]->curatedRank->current)) {
+			if($sbGame->competitions[0]->competitors[0]->id == $queryArray[3]) {
+				$queryArray[5] = $sbGame->competitions[0]->competitors[0]->curatedRank->current;
+				$queryArray[6] = $sbGame->competitions[0]->competitors[1]->curatedRank->current;
+			} else {
+				$queryArray[6] = $sbGame->competitions[0]->competitors[0]->curatedRank->current;
+				$queryArray[5] = $sbGame->competitions[0]->competitors[1]->curatedRank->current;
+			}
 		}
 
 		// Scoreboard uses 99 to indicate unranked. 
@@ -152,7 +153,7 @@
 		return $queryArray;
 	}
 
-	// Get spread/favorite/etc.
+// Get spread/favorite/etc.
 	function updateSpreadPregame($dbConn, $sbGame, $queryArray) {
 		$homeTeam = fetchTeamInfo($dbConn, $queryArray[3]);
 		$awayTeam = fetchTeamInfo($dbConn, $queryArray[4]);
@@ -166,13 +167,13 @@
 				$queryArray[50] = 0;		// Spread is 0
 			} else {
 				if($odds[0] == $homeTeam['abbreviation']) {		// If favorite is home
-					$queryArray[40] = $queryArray[3];
-					$queryArray[41] = $queryArray[4];
-					$queryArray[42] = abs($odds[1]);
+					$queryArray[48] = $queryArray[3];
+					$queryArray[49] = $queryArray[4];
+					$queryArray[50] = abs($odds[1]);
 				} else {										// If favorite is away
-					$queryArray[40] = $queryArray[4];
-					$queryArray[41] = $queryArray[3];
-					$queryArray[42] = abs($odds[1]);
+					$queryArray[48] = $queryArray[4];
+					$queryArray[49] = $queryArray[3];
+					$queryArray[50] = abs($odds[1]);
 				}
 			}
 		}
@@ -180,14 +181,16 @@
 		return $queryArray;
 	}
 
-	// Copy existing spread, since it is no longer in scoreboard and game isn't complete or cancelled
+// Copy existing spread, since it is no longer in scoreboard and game isn't complete or cancelled
 	function copySpread($sqlGame, $queryArray) {
 		$queryArray[48] = $sqlGame['favorite'];
 		$queryArray[49] = $sqlGame['underdog'];
 		$queryArray[50] = $sqlGame['spread'];
+
+		return $queryArray;
 	}
 
-	// Get scores for game (in progress or complete)
+// Get scores for game (in progress or complete)
 	function updateScore($sbGame, $queryArray) {
 		if($sbGame->competitions[0]->competitors[0]->id == $queryArray[3]) {
 			$queryArray[14] = $sbGame->competitions[0]->competitors[0]->score;
@@ -200,7 +203,7 @@
 		return $queryArray;
 	}
 
-	// Set the game as cancelled
+// Set the game as cancelled
 	function setCancelled($sbGame, $queryArray) {
 		$queryArray[8] = 1;		// Set complete
 		$queryArray[9] = 1;		// Set cancelled
@@ -208,7 +211,7 @@
 		return $queryArray;
 	}
 
-	// Get the winner
+// Get the winner
 	function determineWinner($sbGame, $queryArray) {
 		if($sbGame->competitions[0]->competitors[0]->winner == true) {
 			if($sbGame->competitions[0]->competitors[0]->id == $queryArray[3]) {
@@ -231,7 +234,7 @@
 		return $queryArray;
 	}
 
-	// Mark as neutral site/conference game
+// Mark as neutral site/conference game
 	function updateGameType($sbGame, $queryArray) {
 		$queryArray[10] = $sbGame->competitions[0]->neutralSite;
 		$queryArray[11] = $sbGame->competitions[0]->conferenceCompetition;
@@ -239,7 +242,7 @@
 		return $queryArray;
 	}
 
-	// Get final lines from event
+// Get final lines from event
 	function updateFinalLine($evtGame, $queryArray) {
 		if(isset($evtGame->pickcenter[0]->spread)) {
 			$queryArray[50] = abs($evtGame->pickcenter[0]->spread);
@@ -260,7 +263,7 @@
 		return $queryArray;
 	}
 
-	// Update team stats ($homeAway = 0 is home, $homeAway = 1 is away)
+// Update team stats ($homeAway = 0 is home, $homeAway = 1 is away)
 	function updateTeamStats($evtGame, $queryArray, $homeAway) {
 		$teamId = $queryArray[3 + $homeAway];																// ID of Team we're getting stats for
 		$offset = 17 * $homeAway;																			// Offset for away stats (if away stats)

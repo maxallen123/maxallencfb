@@ -310,7 +310,7 @@
 		return $picksArray;
 	}
 
-	// Function to update the database for a given week, does not return anything
+// Function to update the database for a given week, does not return anything
 	function updateWeek($dbConn, $year, $week) {
 		// Set up query
 		$pullGames   = 'SELECT * 
@@ -322,6 +322,9 @@
 
 		// Pull games
 		$games = sqlsrv_query($dbConn, $pullGames, $pullArray);
+
+		// Pull teamArray so we can check for D1 teams
+		$teamArray = loadTeamArray($dbConn);
 
 		// Build an array of existing games
 		$gamesArray = array();
@@ -336,17 +339,19 @@
 		// Go through the ESPN scoreboard...
 		foreach($scoreboard->events as $game) {
 			$gameId = $game->id;							// We're going to reference this a lot
-			echo $gameId . "\n";
-			if(isset($gamesArray[$gameId])) {				// If we already have the game in our database...
-				if(!($gamesArray[$gameId]->completed)) {	// If we haven't completed it, we'll update (otherwise, nothing)
+			// Make sure both teams are D1
+			if(isset($teamArray[$game->competitions[0]->competitors[0]->id]) && isset($teamArray[$game->competitions[0]->competitors[1]->id])) {
+				if(isset($gamesArray[$gameId])) {				// If we already have the game in our database...
+					if(!($gamesArray[$gameId]->completed)) {	// If we haven't completed it, we'll update (otherwise, nothing)
+						updateGame($dbConn, $game, $gamesArray[$gameId]);
+					}
+				} else {										// If we don't have the game in our DB, we'll create it
+					newGame($dbConn, $gameId, $year, $week);
+					$gamesArray[$gameId]['favorite'] = NULL;	// Only place we use sql info is if copying the line if game is in progress or cancelled, so only params we need to set
+					$gamesArray[$gameId]['underdog'] = NULL;
+					$gamesArray[$gameId]['spread']   = NULL;
 					updateGame($dbConn, $game, $gamesArray[$gameId]);
 				}
-			} else {										// If we don't have the game in our DB, we'll create it
-				newGame($dbConn, $gameId, $year, $week);
-				$gamesArray[$gameId]['favorite'] = NULL;	// Only place we use sql info is if copying the line if game is in progress or cancelled, so only params we need to set
-				$gamesArray[$gameId]['underdog'] = NULL;
-				$gamesArray[$gameId]['spread']   = NULL;
-				updateGame($dbConn, $game, $gamesArray[$gameId]);
 			}
 		}
 	}
