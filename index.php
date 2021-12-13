@@ -7,12 +7,6 @@
 <html>
 	<head>
 		<link rel="stylesheet" href="./css/bootstrap.min.css">
-		<script src="./js/jquery-3.6.0.min.js"></script>
-		<script src="./js/functions.js"></script>
-		<script language="javascript" type="text/javascript">
-			// Update picks every 5 seconds
-			setInterval(() => updatePicks(), 5000);
-		</script>
 	</head>
 	<body>
 		<input type="hidden" id="week" value="<?= $week ?>">
@@ -161,5 +155,11 @@
 				?>
 			</tbody>
 		</table>
+		<script src="./js/jquery-3.6.0.min.js"></script>
+		<script src="./js/functions.js"></script>
+		<script language="javascript" type="text/javascript">
+			// Update picks every 5 seconds
+			setInterval(() => updatePicks(), 5000);
+		</script>
 	</body>
 </html>
