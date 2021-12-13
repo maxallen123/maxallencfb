@@ -1,8 +1,5 @@
 <?php
-<<<<<<< HEAD
 	require('updateFunctions.php');
-=======
->>>>>>> 2e2ad8b2cb0e169b31cc7083ede9a301c158eba6
 
 	function sqlConnect() {
 		$connectionOptions = array(
