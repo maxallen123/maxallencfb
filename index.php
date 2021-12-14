@@ -62,7 +62,7 @@
 
 					foreach($gameArray as $game) {
 						?>
-						<tr>
+						<tr id="game-<?= $game->id ?>">
 							<td id="day-<?= $game->id ?>">
 								<?= $game->day ?>
 							</td>
@@ -123,7 +123,7 @@
 										$pick = -1;
 									}
 									echo 
-									"<td>
+									"<td id='tdpick-" . $userId . "-" . $game->id . "'>
 										<select class='pick' id='pick-" . $userId . "-" . $game->id . "' autocomplete='off' onChange='setPick(" . $game->id . ", " . $userId . ")'>
 											<option value='-1'";
 									if($pick == -1) {
@@ -145,7 +145,7 @@
 												">" . $teamArray[$game->tableDog]->displayName . "</option>
 										</select>
 									</td>
-									<td>
+									<td id='score-" . $userId . "-" . $game->id . "'>
 									</td>";
 								}
 							?>
@@ -160,6 +160,9 @@
 		<script language="javascript" type="text/javascript">
 			// Update picks every 5 seconds
 			setInterval(() => updatePicks(), 5000);
+			$(document).ready(function() {
+				updatePicks();
+			})
 		</script>
 	</body>
 </html>
