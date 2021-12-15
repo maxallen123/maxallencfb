@@ -43,12 +43,17 @@ function updatePicks() {
 				//console.log(picks) // Debug info
 				// Go through each game and see what is in the DB
 				$.each(picks, function(gameId, pick) {
+
 					// Go through each user
 					for(let userId = 0; userId <= 3; userId++) {
 						// Get the ID of the select
 						selectId = '#pick-' + userId + '-' + gameId;
 						// Set the select
 						$(selectId).val(pick[userId]);
+						if(pick['game']['status'] > 1) {
+							console.log(gameId);
+							$(selectId).prop('disabled', true);
+						}
 					}
 				});
 			}
