@@ -260,11 +260,20 @@
 		// Get games
 		$games = sqlsrv_query($dbConn, $loadGamesQuery, array($week, $year));
 		$gameArray = array();
+		
+		// Need to do picks in order, tracking them
+		$last = -1;
+		$next = 0;
 
 		while ($game = sqlsrv_fetch_array($games, SQLSRV_FETCH_ASSOC)) {
-			array_push($gameArray, new game($game));
+			if($last != -1) {
+				$gameArray[$last]->last = $game['id'];
+			}
+			$game['next'] = $next;
+			$last = array_push($gameArray, new game($game)) - 1;
+			$next = $game['id'];
 		}
-
+		$gameArray[$last]->last = 0;
 		return $gameArray;
 	}
 
@@ -294,13 +303,27 @@
 		// Load games (edited to return all games, to simplify JS)
 		$gamesArray = loadGames($dbConn, $year, $week);
 
+		// Load teams
+		$teamArray = loadTeamArray($dbConn, $year, $week);
+
 		// Prep array
 		$picksArray = array();
 		foreach($gamesArray as $game) {
 			for($userId = 0; $userId <= 3; $userId++) {
 				$picksArray[$game->id][$userId] = -1;
 			}
+			// Load game into array for JS functions
 			$picksArray[$game->id]['game'] = $game;
+
+			// If line doesnt exist or line is NULL then replace favorite with home/dog with away
+			if(($game->spread) == NULL || $game->spread == 0) {
+				$game->favorite = $game->homeId;
+				$game->underdog = $game->awayId;
+			}
+
+			// Load team info into array as well
+			$picksArray[$game->id]['game']->fav = $teamArray[$game->favorite];
+			$picksArray[$game->id]['game']->dog = $teamArray[$game->underdog];
 		}
 
 		// Load selected picks

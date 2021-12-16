@@ -11,7 +11,7 @@
 	<body>
 		<input type="hidden" id="week" value="<?= $week ?>">
 		<input type="hidden" id="year" value="<?= $year ?>">
-		<table class="table">
+		<table class="table table-striped">
 			<thead>
 				<tr>
 					<th>
@@ -63,8 +63,10 @@
 					foreach($gameArray as $game) {
 						?>
 						<tr id="game-<?= $game->id ?>">
+							<input type="hidden" id="next-<?= $game->id ?>" value="<?= $game->next ?>">
 							<td id="day-<?= $game->id ?>">
 								<?= $game->day ?>
+
 							</td>
 							<td id="name-<?= $game->id ?>">
 								<?= $game->name ?>
@@ -81,17 +83,8 @@
 							<td id="logoFav-<?= $game->id ?>">
 								<img height="25" width="25" src="<?=fetchLogo($dbConn, $game->tableFav)?>">
 							</td>
-							<td id="nameFav-<?= $game->id ?>">
-								<?= $teamArray[$game->tableFav]->displayName ?>
-							</td>
+							<td id="nameFav-<?= $game->id ?>"><?= $teamArray[$game->tableFav]->displayName ?><td>
 							<td id="WLorPointsFav-<?= $game->id ?>">
-								<?php
-									if($game->winnerId != NULL) {
-										echo $game->scoreFav;
-									} else {
-										echo $teamArray[$game->tableFav]->wins . '-' . $teamArray[$game->tableFav]->losses;
-									}
-								?>
 							</td>
 							<td id="rankDog-<?= $game->id ?>">
 								<?= $game->rankDog ?>
@@ -99,17 +92,8 @@
 							<td id="logoDog-<?= $game->id ?>">
 								<img height="25" width="25" src="<?=fetchLogo($dbConn, $game->tableDog)?>">
 							</td>
-							<td id="nameDog-<?= $game->id ?>">
-								<?= $teamArray[$game->tableDog]->displayName ?>
-							</td>
+							<td id="nameDog-<?= $game->id ?>"><?= $teamArray[$game->tableDog]->displayName ?></td>
 							<td id="WLorPointsDog-<?= $game->id ?>">
-								<?php 
-									if($game->winnerId != NULL) {
-										echo $game->scoreDog;
-									} else {
-										echo $teamArray[$game->tableDog]->wins . '-' . $teamArray[$game->tableDog]->losses;
-									}
-								?>
 							</td>
 							<td id="spread-<?= $game->id ?>">
 								<?= $game->spread ?>
@@ -145,8 +129,7 @@
 												">" . $teamArray[$game->tableDog]->displayName . "</option>
 										</select>
 									</td>
-									<td id='score-" . $userId . "-" . $game->id . "'>
-									</td>";
+									<td id='score-" . $userId . "-" . $game->id . "' class='hidden'>0</td>";
 								}
 							?>
 						</tr>

@@ -1,5 +1,5 @@
 <?php
-    require('functions.php');
+    require('../functions.php');
     $dbConn = sqlConnect();
 
     $teamQuery = 'SELECT id, displayName FROM teams';
