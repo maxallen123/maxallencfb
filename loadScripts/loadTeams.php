@@ -1,7 +1,7 @@
 <?php
 
 	// Load SQL function, connect to SQL
-	require('functions.php');
+	require('../functions.php');
 	$dbConn = sqlConnect();
 
 	// Download teams JSON from ESPN
