@@ -7,6 +7,7 @@
 <html>
 	<head>
 		<link rel="stylesheet" href="./css/bootstrap.min.css">
+		<link rel="stylesheet" href="./css/style.css">
 	</head>
 	<body>
 		<input type="hidden" id="week" value="<?= $week ?>">
@@ -26,15 +27,11 @@
 					<th>
 						TV
 					</th>
-					<th colspan = 3>
+					<th colspan = 4>
 						Favorite
 					</th>
-					<th>
-					</th>
-					<th colspan = 3>
+					<th colspan = 4>
 						Underdog
-					</th>
-					<th>
 					</th>
 					<th>
 						Spread
@@ -66,7 +63,6 @@
 							<input type="hidden" id="next-<?= $game->id ?>" value="<?= $game->next ?>">
 							<td id="day-<?= $game->id ?>">
 								<?= $game->day ?>
-
 							</td>
 							<td id="name-<?= $game->id ?>">
 								<?= $game->name ?>
@@ -83,9 +79,8 @@
 							<td id="logoFav-<?= $game->id ?>">
 								<img height="25" width="25" src="<?=fetchLogo($dbConn, $game->tableFav)?>">
 							</td>
-							<td id="nameFav-<?= $game->id ?>"><?= $teamArray[$game->tableFav]->displayName ?><td>
-							<td id="WLorPointsFav-<?= $game->id ?>">
-							</td>
+							<td id="nameFav-<?= $game->id ?>"><?= $teamArray[$game->tableFav]->displayName ?></td>
+							<td id="WLorPointsFav-<?= $game->id ?>"></td>
 							<td id="rankDog-<?= $game->id ?>">
 								<?= $game->rankDog ?>
 							</td>
@@ -129,7 +124,7 @@
 												">" . $teamArray[$game->tableDog]->displayName . "</option>
 										</select>
 									</td>
-									<td id='score-" . $userId . "-" . $game->id . "' class='hidden'>0</td>";
+									<td><span id='score-" . $userId . "-" . $game->id . "' class='hidden'></span></td>";
 								}
 							?>
 						</tr>

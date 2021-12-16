@@ -40,9 +40,8 @@ function updatePicks() {
 		datatype: 'json',
 		success:
 			function(picks) {
-				//console.log(picks) // Debug info
+				console.log(picks) // Debug info
 				// Go through each game and see what is in the DB
-				console.log(picks);
 				$.each(picks, function(gameId, pick) {
 					addClassesStatus(gameId, pick['game']['status']);
 					WLorPointsUpdate(gameId, pick['game']);
@@ -58,7 +57,7 @@ function updatePicks() {
 						}
 					}
 					if(pick['game']['last'] == 0) {
-						updateScores(gameId);
+						updateScores(gameId, pick['game'], picks);
 					}
 				});
 			}
@@ -135,13 +134,44 @@ function winnerUpdate(gameId, game) {
 			$('#nameDog-' + gameId).addClass('winner');
 			$('#WLorPointsDog-' + gameId).addClass('winner');
 		}
-	}
-
-	for(let userId = 0; userId <= 3; userId++) {
-		$('#score-' + userId + '-' + gameId).removeClass('hidden');
+		for(let userId = 0; userId <= 3; userId++) {
+			$('#score-' + userId + '-' + gameId).removeClass('hidden');
+		}
 	}
 }
 
-function updateScores(gameId) {
+function updateScores(gameId, game, picks) {
+	// Set preliminary variables
+	curGame = game;
+	curId = gameId;
+	userScore = new Array();
+	for(let userId = 0; userId <= 3; userId++) {
+		userScore[userId] = 0;
+	}
 
+	// Loop through each one
+	do {
+		if(curGame['winnerId'] != null) {
+			// Go through each user, set new score
+			for(let userId = 0; userId <= 3; userId++) {
+				if(picks[curId][userId] == curGame['winnerId']) {
+					userScore[userId]++;
+				}
+			}
+		}
+
+		// Update cells - set score and leader class
+		for(let userId = 0; userId <= 3; userId++) {
+			$('#score-' + userId + '-' + curId).text(userScore[userId]);
+			if(userScore[userId] == Math.max(...userScore)) {
+				$('#score-' + userId + '-' + curId).addClass('leader');
+			}
+		}
+		
+		// Step through to the next game
+		curId = curGame['next'];
+		if(curId != 0) {
+			curGame = picks[curId]['game'];
+		}
+	} while (curId);
 }
