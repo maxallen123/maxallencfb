@@ -12,7 +12,7 @@
 	<body>
 		<input type="hidden" id="week" value="<?= $week ?>">
 		<input type="hidden" id="year" value="<?= $year ?>">
-		<table class="table table-striped">
+		<table class="table table-striped table-dark">
 			<thead>
 				<tr>
 					<th>
@@ -67,13 +67,13 @@
 							<td id="name-<?= $game->id ?>">
 								<?= $game->name ?>
 							</td>
-							<td id="time-<?= $game->id ?>">
+							<td id="time-<?= $game->id ?>" class="time">
 								<?= $game->time ?>
 							</td>
 							<td id="network-<?= $game->id ?>">
 								<?= $game->network ?>
 							</td>
-							<td id="rankFav-<?= $game->id ?>">
+							<td id="rankFav-<?= $game->id ?>" class="rank">
 								<?= $game->rankFav ?>
 							</td>
 							<td id="logoFav-<?= $game->id ?>">
@@ -81,7 +81,7 @@
 							</td>
 							<td id="nameFav-<?= $game->id ?>"><?= $teamArray[$game->tableFav]->displayName ?></td>
 							<td id="WLorPointsFav-<?= $game->id ?>"></td>
-							<td id="rankDog-<?= $game->id ?>">
+							<td id="rankDog-<?= $game->id ?>" class="rank">
 								<?= $game->rankDog ?>
 							</td>
 							<td id="logoDog-<?= $game->id ?>">
@@ -103,7 +103,7 @@
 									}
 									echo 
 									"<td id='tdpick-" . $userId . "-" . $game->id . "'>
-										<select class='pick' id='pick-" . $userId . "-" . $game->id . "' autocomplete='off' onChange='setPick(" . $game->id . ", " . $userId . ")'>
+										<select class='pick form-select' id='pick-" . $userId . "-" . $game->id . "' autocomplete='off' onChange='setPick(" . $game->id . ", " . $userId . ")'>
 											<option value='-1'";
 									if($pick == -1) {
 										echo " selected";

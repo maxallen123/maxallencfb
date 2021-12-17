@@ -1,3 +1,45 @@
+body {
+	background-color: black;
+}
+
 .hidden {
 	visibility: hidden;
+}
+
+td {
+	font-size: 0.8em;
+	vertical-align: middle;
+}
+
+.form-select {
+	font-size: 0.9em;
+	padding: .1rem 2.25rem .1rem .75rem;
+	background-color: black;
+	color: white;
+}
+
+.form-select:disabled {
+	background-color: #333333;
+	color: #bbbbbb;
+}
+
+.rank {
+	font-size: 0.6em;
+	font-style: italic;
+	text-align: right;
+	padding: .25rem .25rem !important;
+}
+
+.time {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.winner {
+	font-weight: bold;	
+}
+
+.loser {
+	font-size: 0.7em;
+	color: #888888 !important;
 }

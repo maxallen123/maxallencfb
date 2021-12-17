@@ -52,7 +52,7 @@ function updatePicks() {
 						selectId = '#pick-' + userId + '-' + gameId;
 						// Set the select
 						$(selectId).val(pick[userId]);
-						if(pick['game']['status'] > 1) {
+						if((pick['game']['status'] > 1)) {
 							$(selectId).prop('disabled', true);
 						}
 					}
@@ -79,7 +79,9 @@ function addClassesStatus(gameId, status) {
 			removeClass = 'pregame in-progress'; 
 	}
 	trId = '#game-' + gameId;
-	$(trId).removeClass(removeClass).addClass(addClass);
+	if(!$(trId).hasClass(addClass)) {
+		$(trId).removeClass(removeClass).addClass(addClass);
+	}
 }
 
 function WLorPointsUpdate(gameId, game) {
@@ -88,12 +90,12 @@ function WLorPointsUpdate(gameId, game) {
 	dogCellId = '#WLorPointsDog-' + game['id'];
 
 	// Depending on game status
-	if(game['status'] == 1) {		// If game hasn't been played yet, show W-L record
+	if(game['status'] == 1 && ($(favCellId).html() != (game['fav']['wins'] + '-' + game['fav']['losses']))) {		// If game hasn't been played yet, show W-L record
 		$(favCellId).html(game['fav']['wins'] + '-' + game['fav']['losses']);
 		$(dogCellId).html(game['dog']['wins'] + '-' + game['dog']['losses']);
 	}
 
-	if(game['status'] > 3) {		// If game wasn't played, show nothing
+	if(game['status'] > 3 && $(favCellId).html() != '') {		// If game wasn't played, show nothing
 		$(favCellId).html('');
 		$(dogCellId).html('');
 	}
