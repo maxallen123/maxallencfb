@@ -282,7 +282,7 @@
 		$logoQuery = "SELECT 
 						href
 						FROM teamLogos WHERE
-						desc_2 = 'default' AND teamId = ?";
+						desc_2 = 'dark' AND teamId = ?";
 		
 		$logo = sqlsrv_query($dbConn, $logoQuery, array($teamId));
 		
