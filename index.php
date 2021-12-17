@@ -64,16 +64,16 @@
 							<td id="day-<?= $game->id ?>">
 								<?= $game->day ?>
 							</td>
-							<td id="name-<?= $game->id ?>" class=>
+							<td id="name-<?= $game->id ?>">
 								<?= $game->name ?>
 							</td>
-							<td id="time-<?= $game->id ?>">
+							<td id="time-<?= $game->id ?>" class="time">
 								<?= $game->time ?>
 							</td>
 							<td id="network-<?= $game->id ?>">
 								<?= $game->network ?>
 							</td>
-							<td id="rankFav-<?= $game->id ?>">
+							<td id="rankFav-<?= $game->id ?>" class="rank">
 								<?= $game->rankFav ?>
 							</td>
 							<td id="logoFav-<?= $game->id ?>">
@@ -81,7 +81,7 @@
 							</td>
 							<td id="nameFav-<?= $game->id ?>"><?= $teamArray[$game->tableFav]->displayName ?></td>
 							<td id="WLorPointsFav-<?= $game->id ?>"></td>
-							<td id="rankDog-<?= $game->id ?>">
+							<td id="rankDog-<?= $game->id ?>" class="rank">
 								<?= $game->rankDog ?>
 							</td>
 							<td id="logoDog-<?= $game->id ?>">
