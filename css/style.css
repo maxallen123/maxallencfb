@@ -1,3 +1,15 @@
 .hidden {
 	visibility: hidden;
 }
+
+td {
+	font-size: 0.8em;
+	vertical-align: middle;
+}
+
+.form-select {
+	font-size: 1em;
+	padding: .1rem 2.25rem .1rem .75rem;
+	background-color: black;
+	color: white;
+}

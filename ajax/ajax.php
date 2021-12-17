@@ -3,21 +3,32 @@
 
 	function setPick($dbConn) {
 		// Set up queries
-		$checkPick  = 'SELECT gameId 
-						FROM picks 
-						WHERE gameId = ? AND userId = ?';
-		$newPick    = 'INSERT INTO picks 
-						(gameId, userId, pick, year, week, lastChange) 
-						VALUES 
-						(?, ?, ?, ?, ?, ?)';
-		$updatePick = 'UPDATE picks SET
-						pick = ?, lastChange = ? 
-						WHERE gameId = ? AND userId = ?';
-		$deletePick = 'DELETE FROM picks
-						WHERE gameId = ? AND userId = ?';
+		$checkPick      = 'SELECT gameId 
+							FROM picks 
+							WHERE gameId = ? AND userId = ?';
+		$newPick        = 'INSERT INTO picks 
+							(gameId, userId, pick, year, week, lastChange) 
+							VALUES 
+							(?, ?, ?, ?, ?, ?)';
+		$updatePick     = 'UPDATE picks SET
+							pick = ?, lastChange = ? 
+							WHERE gameId = ? AND userId = ?';
+		$deletePick     = 'DELETE FROM picks
+							WHERE gameId = ? AND userId = ?';
+		$checkStartTime = 'SELECT date 
+							FROM games
+							WHERE id = ?';
 		
 		// Get the current time to check for cheating
 		$curTime = new DateTime('NOW');
+
+		// Let's check and make sure the game hasn't already started
+		$timeRsrc = sqlsrv_query($dbConn, $checkStartTime, array($_GET['gameId']));
+		$time = sqlsrv_fetch_array($timeRsrc);
+		if($curTime > $time['date']) {
+			die();
+		}
+
 
 		// Set up arrays
 		$checkArray  = array($_GET['gameId'], $_GET['userId']);

@@ -218,7 +218,7 @@
 			foreach($game as $columnKey => $value) {
 				$this->$columnKey = $value;
 			}
-			$this->day       = $game['date']->format('M-j');
+			$this->day       = $game['date']->format('n/j');
 			$this->time      = $game['date']->format('g:i A');
 
 			// Handle favorites if no line or if pick

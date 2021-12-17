@@ -12,7 +12,7 @@
 	<body>
 		<input type="hidden" id="week" value="<?= $week ?>">
 		<input type="hidden" id="year" value="<?= $year ?>">
-		<table class="table table-striped">
+		<table class="table table-striped table-dark">
 			<thead>
 				<tr>
 					<th>
@@ -64,7 +64,7 @@
 							<td id="day-<?= $game->id ?>">
 								<?= $game->day ?>
 							</td>
-							<td id="name-<?= $game->id ?>">
+							<td id="name-<?= $game->id ?>" class=>
 								<?= $game->name ?>
 							</td>
 							<td id="time-<?= $game->id ?>">
@@ -103,7 +103,7 @@
 									}
 									echo 
 									"<td id='tdpick-" . $userId . "-" . $game->id . "'>
-										<select class='pick' id='pick-" . $userId . "-" . $game->id . "' autocomplete='off' onChange='setPick(" . $game->id . ", " . $userId . ")'>
+										<select class='pick form-select' id='pick-" . $userId . "-" . $game->id . "' autocomplete='off' onChange='setPick(" . $game->id . ", " . $userId . ")'>
 											<option value='-1'";
 									if($pick == -1) {
 										echo " selected";
