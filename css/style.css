@@ -37,9 +37,32 @@ td {
 
 .winner {
 	font-weight: bold;	
+	color: white !important;
 }
 
 .loser {
 	font-size: 0.7em;
 	color: #888888 !important;
+}
+
+.leader {
+	font-weight: bold;
+	font-size: 0.9em;
+	color: white;
+}
+
+.in-progress {
+	--bs-table-striped-bg: #626568;
+	--bs-table-bg: #54575b;
+}
+
+.completed {
+	--bs-table-striped-bg: ##050b11;
+	--bs-table-bg: #000000;
+	color: #555555;
+	--bs-table-striped-color: #555555;
+}
+
+.spread {
+	text-align: right;
 }

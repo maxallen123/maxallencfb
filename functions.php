@@ -1,5 +1,7 @@
 <?php
 	require('updateFunctions.php');
+	require('teamFunctions.php');
+	require('indexFunctions.php');
 
 	function sqlConnect() {
 		$connectionOptions = array(
@@ -138,81 +140,6 @@
 		}
 	}
 
-	class team {
-		function __construct($id, $displayName, $shortDisplayName, $abbreviation, $comedyName) {
-			$this->id                 = $id;
-			$this->displayName        = $displayName;
-			$this->shortDisplayName   = $shortDisplayName;
-			$this->abbreviation       = $abbreviation;
-			$this->wins               = 0;
-			$this->losses             = 0;
-			$this->pointsFor          = 0;
-			$this->pointsForArray     = array();
-			$this->pointsAgainst      = 0;
-			$this->pointsAgainstArray = array();
-			$this->opponents          = array();
-
-			if($comedyName != NULL) {
-				$this->displayName = $comedyName;
-			}
-		}
-
-		function addGame($game) {
-			// Determine if we are home or away
-			if($game['homeId'] == $this->id) {
-				$us = 'home';
-				$them = 'away';
-			} else {
-				$us = 'away';
-				$them = 'home';
-			}
-
-			// Did we win?
-			if($game[$us . 'Score'] > $game[$them . 'Score']) {
-				$this->wins++;
-			} else {
-				$this->losses++;
-			}
-
-			$this->pointsFor     += $game[$us . 'Score'];						// Add our points
-			$this->pointsAgainst += $game[$them . 'Score'];						// Add their points
-			array_push($this->pointsForArray, $game[$us . 'Score']);			// Add our score to array
-			array_push($this->pointsAgainstArray, $game[$them . 'Score']);		// Add their score to array
-			array_push($this->opponents, $game[$them . 'Id']);					// Add opponent to list
-		}
-	}
-
-	function loadTeamArray($dbConn) {
-		// Prep Queries
-		$loadQuery = 'SELECT 
-						id, displayName, shortDisplayName, abbreviation, comedyName 
-						FROM teams';
-		$gamesQuery = 'SELECT 
-						id, homeId, awayId, homeScore, awayScore 
-						FROM games WHERE 
-						completed = 1 AND isCancelled = 0';
-		
-		// Get teams from SQL
-		$teamRsrc = sqlsrv_query($dbConn, $loadQuery);
-
-		// Proceed through the list
-		$teams = array();
-		while($team = sqlsrv_fetch_array($teamRsrc)) {
-			$teams[$team['id']] = new team($team['id'], $team['displayName'], $team['shortDisplayName'], $team['abbreviation'], $team['comedyName']);
-		}
-
-		// Get games from SQL
-		$gameRsrc = sqlsrv_query($dbConn, $gamesQuery);
-		
-		// Proceed through the list
-		while($game = sqlsrv_fetch_array($gameRsrc)) {
-			$teams[$game['homeId']]->addGame($game);
-			$teams[$game['awayId']]->addGame($game);
-		}
-
-		return $teams;
-	}
-
 	class game {
 		function __construct($game) {
 			foreach($game as $columnKey => $value) {
@@ -229,8 +156,8 @@
 				$this->tableFav = $this->favorite;
 				$this->tableDog = $this->underdog;
 			}
-			if($this->spread == -1) {					// If odds are even then show PICK
-				$spread = 'PICK';
+			if($this->spread == 0) {					// If odds are even then show PICK
+				$this->spread = 'PICK';
 			} else if($this->spread != NULL) {			// Otherwise if odds exist, set the spread to be format negative score
 				$this->spread = 0 - $this->spread;
 			}
@@ -316,7 +243,7 @@
 			$picksArray[$game->id]['game'] = $game;
 
 			// If line doesnt exist or line is NULL then replace favorite with home/dog with away
-			if(($game->spread) == NULL || $game->spread == 0) {
+			if(($game->spread) == NULL || $game->spread == 'PICK') {
 				$game->favorite = $game->homeId;
 				$game->underdog = $game->awayId;
 			}
@@ -358,6 +285,7 @@
 		if(sqlsrv_has_rows($games)) {
 			while($sqlGame = sqlsrv_fetch_array($games, SQLSRV_FETCH_ASSOC)) {
 				$gamesArray[$sqlGame['id']] = new game($sqlGame);
+				$sqlArray[$sqlGame['id']] = $sqlGame;
 			}
 		}
 	
@@ -370,7 +298,7 @@
 			if(isset($teamArray[$game->competitions[0]->competitors[0]->id]) && isset($teamArray[$game->competitions[0]->competitors[1]->id])) {
 				if(isset($gamesArray[$gameId])) {				// If we already have the game in our database...
 					if(!($gamesArray[$gameId]->completed)) {	// If we haven't completed it, we'll update (otherwise, nothing)
-						updateGame($dbConn, $game, $gamesArray[$gameId]);
+						updateGame($dbConn, $game, $sqlArray[$gameId]);
 					}
 				} else {										// If we don't have the game in our DB, we'll create it
 					newGame($dbConn, $gameId, $year, $week);

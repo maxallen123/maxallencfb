@@ -1,6 +1,6 @@
 <?php
 
-// Generate query to update games
+	// Generate query to update games
 	function setUpdateQuery() {
 		return 'UPDATE games SET 
 					date                      = ?,  -- 0
@@ -105,7 +105,7 @@
 
 // Set gate date, name, and broadcast network
 	function updateDateNameNetwork($sbGame, $queryArray) {
-		$queryArray[0] = date('Y-m-d H:i:s', (strtotime($sbGame->date) + 60 * 60));		// Date, adjust to eastern time
+		$queryArray[0] = date('Y-m-d H:i:s', (strtotime($sbGame->date)));		// Date, adjust to eastern time
 		if(isset($sbGame->competitions[0]->notes[0]->headline)) {						// Name, if exists
 			$queryArray[1] = $sbGame->competitions[0]->notes[0]->headline;
 		}
@@ -132,7 +132,7 @@
 // Get ranks for teams
 	function updateRanks($sbGame, $queryArray) {
 		// Determine which competitor is home, then set rank
-		if(isset($sbGame->competitions[0]->competitors[0]->curatedRank->current)) {
+		if(isset($sbGame->competitions[0]->competitors[0]->curatedRank->current) && isset($sbGame->competitions[0]->competitors[1]->curatedRank->current)) {
 			if($sbGame->competitions[0]->competitors[0]->id == $queryArray[3]) {
 				$queryArray[5] = $sbGame->competitions[0]->competitors[0]->curatedRank->current;
 				$queryArray[6] = $sbGame->competitions[0]->competitors[1]->curatedRank->current;
@@ -335,6 +335,9 @@
 
 		// Lets get the status of the game and decide what we're going to do
 		$gameStatus = $sbGame->status->type->id;
+		if($gameStatus > 20) {
+			$gameStatus = 2;
+		}
 		$queryArray[7] = $gameStatus;
 		/* Status Flags:
 			1: Scheduled

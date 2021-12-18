@@ -90,8 +90,8 @@
 							<td id="nameDog-<?= $game->id ?>"><?= $teamArray[$game->tableDog]->displayName ?></td>
 							<td id="WLorPointsDog-<?= $game->id ?>">
 							</td>
-							<td id="spread-<?= $game->id ?>">
-								<?= $game->spread ?>
+							<td class="spread" id="spread-<?= $game->id ?>">
+								<?= formatSpread($game->spread) ?>
 							</td>
 							<?php
 								// Picks Loop
@@ -124,7 +124,7 @@
 												">" . $teamArray[$game->tableDog]->displayName . "</option>
 										</select>
 									</td>
-									<td><span id='score-" . $userId . "-" . $game->id . "' class='hidden'></span></td>";
+									<td id='scoretd-" . $userId . "-" . $game->id . "'><span id='score-" . $userId . "-" . $game->id . "' class='hidden'></span></td>";
 								}
 							?>
 						</tr>
