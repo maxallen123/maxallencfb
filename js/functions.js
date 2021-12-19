@@ -78,10 +78,12 @@ function addClassesStatus(gameId, status) {
 			addClass    = 'completed';
 			removeClass = 'pregame in-progress'; 
 	}
-	trId = '#game-' + gameId;
-	if(!$(trId).hasClass(addClass)) {
-		$(trId).removeClass(removeClass).addClass(addClass);
-	}
+	
+	$('td[id*=' + gameId + ']').each(function() {
+		if(!$(this).hasClass(addClass)) {
+			$(this).removeClass(removeClass).addClass(addClass);
+		}
+	})
 }
 
 function WLorPointsUpdate(gameId, game) {
@@ -117,7 +119,7 @@ function winnerUpdate(gameId, game) {
 	if(game['winnerId'] != null) {
 		favNameCell = '#nameFav-' + gameId;
 		dogNameCell = '#nameDog-' + gameId;
-		if(game['fav']['displayName'] == $(favNameCell).html()) {
+		if(game['fav']['id'] == game['winnerId']) {
 			$('#rankFav-' + gameId).addClass('winner');
 			$('#logoFav-' + gameId).addClass('winner');
 			$('#nameFav-' + gameId).addClass('winner');
@@ -158,6 +160,9 @@ function updateScores(gameId, game, picks) {
 			for(let userId = 0; userId <= 3; userId++) {
 				if(picks[curId][userId] == curGame['winnerId']) {
 					userScore[userId]++;
+					$('#pick-' + userId + '-' + curId).addClass('winner');
+				} else {
+					$('#pick-' + userId + '-' + curId).addClass('loser');
 				}
 			}
 		}
@@ -165,7 +170,9 @@ function updateScores(gameId, game, picks) {
 		// Update cells - set score and leader class
 		for(let userId = 0; userId <= 3; userId++) {
 			$('#score-' + userId + '-' + curId).text(userScore[userId]);
-			if(userScore[userId] == Math.max(...userScore)) {
+			if(userScore[userId] == Math.max(...userScore) && (!$('#score-' + userId + '-' + curId).hasClass('hidden'))) {
+				$('#tdpick-' + userId + '-' + curId).addClass('pick-leader');
+				$('#tdscore-' + userId + '-' + curId).addClass('leader');
 				$('#score-' + userId + '-' + curId).addClass('leader');
 			}
 		}

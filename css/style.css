@@ -37,9 +37,52 @@ td {
 
 .winner {
 	font-weight: bold;	
+	color: white !important;
 }
 
 .loser {
 	font-size: 0.7em;
 	color: #888888 !important;
+}
+
+span.leader, td.leader {
+	font-weight: bold;
+	font-size: 0.9em;
+	color: white;
+}
+
+.in-progress {
+	--bs-table-striped-bg: #626568;
+	--bs-table-bg: #54575b;
+}
+
+.completed {
+	--bs-table-striped-bg: #050b11;
+	--bs-table-bg: #000000;
+	color: #555555;
+	--bs-table-striped-color: #555555;
+}
+
+.spread {
+	text-align: right;
+}
+
+.leader.uid-0, .pick-leader.uid-0 {
+	--bs-table-bg: #00183a; 
+	--bs-table-striped-bg: #002347;
+}
+
+.leader.uid-1, .pick-leader.uid-1 {
+	--bs-table-bg: #a33700; 
+	--bs-table-striped-bg: #c15000;
+}
+
+.leader.uid-2, .pick-leader.uid-2 {
+	--bs-table-bg: #5d0000; 
+	--bs-table-striped-bg: #6b000e;
+}
+
+.leader.uid-3, .pick-leader.uid-3 {
+	--bs-table-bg: #003f00; 
+	--bs-table-striped-bg: #005f00;
 }
