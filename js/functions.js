@@ -160,6 +160,9 @@ function updateScores(gameId, game, picks) {
 			for(let userId = 0; userId <= 3; userId++) {
 				if(picks[curId][userId] == curGame['winnerId']) {
 					userScore[userId]++;
+					$('#pick-' + userId + '-' + curId).addClass('winner');
+				} else {
+					$('#pick-' + userId + '-' + curId).addClass('loser');
 				}
 			}
 		}
@@ -168,7 +171,8 @@ function updateScores(gameId, game, picks) {
 		for(let userId = 0; userId <= 3; userId++) {
 			$('#score-' + userId + '-' + curId).text(userScore[userId]);
 			if(userScore[userId] == Math.max(...userScore) && (!$('#score-' + userId + '-' + curId).hasClass('hidden'))) {
-				$('#scoretd-' + userId + '-' + curId).addClass('leader');
+				$('#tdpick-' + userId + '-' + curId).addClass('pick-leader');
+				$('#tdscore-' + userId + '-' + curId).addClass('leader');
 				$('#score-' + userId + '-' + curId).addClass('leader');
 			}
 		}

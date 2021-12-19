@@ -102,7 +102,7 @@
 										$pick = -1;
 									}
 									echo 
-									"<td id='tdpick-" . $userId . "-" . $game->id . "'>
+									"<td class='uid-" . $userId . "' id='tdpick-" . $userId . "-" . $game->id . "'>
 										<select class='pick form-select' id='pick-" . $userId . "-" . $game->id . "' autocomplete='off' onChange='setPick(" . $game->id . ", " . $userId . ")'>
 											<option value='-1'";
 									if($pick == -1) {
@@ -124,7 +124,7 @@
 												">" . $teamArray[$game->tableDog]->displayName . "</option>
 										</select>
 									</td>
-									<td id='scoretd-" . $userId . "-" . $game->id . "'><span id='score-" . $userId . "-" . $game->id . "' class='hidden'></span></td>";
+									<td class='uid-" . $userId . "' id='tdscore-" . $userId . "-" . $game->id . "'><span id='score-" . $userId . "-" . $game->id . "' class='hidden'></span></td>";
 								}
 							?>
 						</tr>

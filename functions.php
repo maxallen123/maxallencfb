@@ -2,6 +2,7 @@
 	require('updateFunctions.php');
 	require('teamFunctions.php');
 	require('indexFunctions.php');
+	require('statFunctions.php');
 
 	function sqlConnect() {
 		$connectionOptions = array(

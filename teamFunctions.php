@@ -10,6 +10,7 @@
 			$this->wins               = 0;
 			$this->losses             = 0;
 			$this->opponents          = array();
+			$this->gameIds            = array();
 			$this->offStats           = array();
 			$this->offStatsArrays     = array();
 			$this->defStats           = array();
@@ -29,7 +30,7 @@
 		}
 
 		function addGame($game) {
-			// Determine if we are home or away
+			// Determine if we are home or away (or all teams)
 			if($game['homeId'] == $this->id) {
 				$us = 'home';
 				$them = 'away';
@@ -47,19 +48,31 @@
 
 			$statsArray = statsArray();
 
-			// Only run stats for actual played games
-			if($game['isCancelled'] == 0) {
-				array_push($this->opponents, $game[$them . 'Id']);					// Add opponent to list
-				foreach($statsArray as $stat) {
-					$statUs   = $us   . $stat;
-					$statThem = $them . $stat;
-					$this->offStats[$stat] += $game[$statUs];
-					array_push($this->offStatsArrays[$stat], $game[$statUs]);
-					$this->defStats[$stat] += $game[$statThem];
-					array_push($this->defStatsArrays[$stat], $game[$statThem]);
-				}
+			$max = 0;
+			if($this->id == -1) {
+				$max = 1;
 			}
 
+			// Only run stats for actual played games
+			for($x = 0; $x <= $max; $x++) {
+				// If $x == 1 then we are -1 and we need to cycle through again, but opposite
+				if($x == 1) {
+					$us   = 'home';
+					$them = 'away';
+				}
+				if($game['isCancelled'] == 0 && $game['completed'] == 1 && $game[$us . 'Yards'] != NULL) {
+					array_push($this->opponents, $game[$them . 'Id']);					// Add opponent to list
+					foreach($statsArray as $stat) {
+						$statUs   = $us   . $stat;
+						$statThem = $them . $stat;
+						$this->offStats[$stat] += $game[$statUs];
+						array_push($this->offStatsArrays[$stat], $game[$statUs]);
+						$this->defStats[$stat] += $game[$statThem];
+						array_push($this->defStatsArrays[$stat], $game[$statThem]);
+						array_push($this->gameIds, $game['id']);
+					}
+				}
+			}
 		}
 	}
 
@@ -82,6 +95,8 @@
 		while($team = sqlsrv_fetch_array($teamRsrc)) {
 			$teams[$team['id']] = new team($team['id'], $team['displayName'], $team['shortDisplayName'], $team['abbreviation'], $team['comedyName']);
 		}
+		// Add the all teams
+		$teams[-1] = new team(-1, 'All Teams', 'All Teams', 'ALLT', NULL);
 
 		// Get games from SQL
 		$gameRsrc = sqlsrv_query($dbConn, $gamesQuery);
@@ -90,6 +105,7 @@
 		while($game = sqlsrv_fetch_array($gameRsrc)) {
 			$teams[$game['homeId']]->addGame($game);
 			$teams[$game['awayId']]->addGame($game);
+			$teams[-1]->addGame($game);
 		}
 
 		return $teams;
