@@ -44,7 +44,7 @@ function updatePicks() {
 				// Go through each game and see what is in the DB
 				$.each(picks, function(gameId, pick) {
 					addClassesStatus(gameId, pick['game']['status']);
-					WLorPointsUpdate(gameId, pick['game']);
+					WLorPointsUpdate(pick['game']);
 					winnerUpdate(gameId, pick['game']);
 					// Go through each user
 					for(let userId = 0; userId <= 3; userId++) {
@@ -57,7 +57,7 @@ function updatePicks() {
 						}
 					}
 					if(pick['game']['last'] == 0) {
-						updateScores(gameId, pick['game'], picks);
+						setTimeout(() => updateScores(gameId, pick['game'], picks), 1);
 					}
 				});
 			}
@@ -86,7 +86,7 @@ function addClassesStatus(gameId, status) {
 	})
 }
 
-function WLorPointsUpdate(gameId, game) {
+function WLorPointsUpdate(game) {
 	// Set cell IDs
 	favCellId = '#WLorPointsFav-' + game['id'];
 	dogCellId = '#WLorPointsDog-' + game['id'];

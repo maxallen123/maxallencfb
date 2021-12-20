@@ -217,7 +217,7 @@
 		return sqlsrv_fetch_array($logo)['href'];
 	}
 
-	function loadPicks($dbConn, $year, $week) {
+	function loadPicks($dbConn, $teamArray, $year, $week) {
 		// Set up query
 		$picksQuery = 'SELECT 
 						*
@@ -230,9 +230,6 @@
 
 		// Load games (edited to return all games, to simplify JS)
 		$gamesArray = loadGames($dbConn, $year, $week);
-
-		// Load teams
-		$teamArray = loadTeamArray($dbConn, $year, $week);
 
 		// Prep array
 		$picksArray = array();
@@ -279,7 +276,7 @@
 		$games = sqlsrv_query($dbConn, $pullGames, $pullArray);
 
 		// Pull teamArray so we can check for D1 teams
-		$teamArray = loadTeamArray($dbConn);
+		$teamArray = loadTeamArray($dbConn, 0, $year, 0);
 
 		// Build an array of existing games
 		$gamesArray = array();

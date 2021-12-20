@@ -1,11 +1,16 @@
 <?php
-	require('functions.php');
+	require('phpFunctions/functions.php');
 	$dbConn = sqlConnect();
-	$week = 20;
-	$year = 2021
+
+	$weekRow = currentWeek($dbConn);
+
+	$week = $weekRow['week'];
+	$year = $weekRow['year'];
+	$name = $weekRow['weekName'];
 ?>
 <html>
 	<head>
+		<title>Zubaz Picks for <?= $year ?> <?= $name ?></title>
 		<link rel="stylesheet" href="./css/bootstrap.min.css">
 		<link rel="stylesheet" href="./css/style.css">
 	</head>
@@ -53,9 +58,9 @@
 			<tbody>
 				<?php
 					// Load teams, games, picks
-					$teamArray = loadTeamArray($dbConn);
+					$teamArray = loadTeamArray($dbConn, 0, $year, 0);
 					$gameArray = loadGames($dbConn, $year, $week);
-					$picksArray = loadPicks($dbConn, $year, $week);
+					$picksArray = loadPicks($dbConn, $teamArray, $year, $week);
 
 					foreach($gameArray as $game) {
 						?>

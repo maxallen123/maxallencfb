@@ -29,7 +29,7 @@
 			}
 		}
 
-		function addGame($game) {
+		function addGame($game, $stats) {
 			// Determine if we are home or away (or all teams)
 			if($game['homeId'] == $this->id) {
 				$us = 'home';
@@ -53,39 +53,54 @@
 				$max = 1;
 			}
 
-			// Only run stats for actual played games
-			for($x = 0; $x <= $max; $x++) {
-				// If $x == 1 then we are -1 and we need to cycle through again, but opposite
-				if($x == 1) {
-					$us   = 'home';
-					$them = 'away';
-				}
-				if($game['isCancelled'] == 0 && $game['completed'] == 1 && $game[$us . 'Yards'] != NULL) {
-					array_push($this->opponents, $game[$them . 'Id']);					// Add opponent to list
-					foreach($statsArray as $stat) {
-						$statUs   = $us   . $stat;
-						$statThem = $them . $stat;
-						$this->offStats[$stat] += $game[$statUs];
-						array_push($this->offStatsArrays[$stat], $game[$statUs]);
-						$this->defStats[$stat] += $game[$statThem];
-						array_push($this->defStatsArrays[$stat], $game[$statThem]);
-						array_push($this->gameIds, $game['id']);
+			if($stats == 1) {		// Only do this if we are collecting stats
+				for($x = 0; $x <= $max; $x++) {
+					// If $x == 1 then we are -1 and we need to cycle through again, but opposite
+					if($x == 1) {
+						$us   = 'home';
+						$them = 'away';
+					}
+					if($game['isCancelled'] == 0 && $game['completed'] == 1 && $game[$us . 'Yards'] != NULL) {	// Only run stats for actual played games
+						array_push($this->opponents, $game[$them . 'Id']);										// Add opponent to list
+						foreach($statsArray as $stat) {
+							$statUs   = $us   . $stat;
+							$statThem = $them . $stat;
+							$this->offStats[$stat] += $game[$statUs];
+							array_push($this->offStatsArrays[$stat], $game[$statUs]);
+							$this->defStats[$stat] += $game[$statThem];
+							array_push($this->defStatsArrays[$stat], $game[$statThem]);
+							array_push($this->gameIds, $game['id']);
+						}
 					}
 				}
 			}
 		}
 	}
 
-	// Function to create array of team classes
-	function loadTeamArray($dbConn) {
+	/* Function to create array of team classes
+	 * Type:
+	 *  0 - All games for a given year
+	 *  1 - Last $period number of games
+	 * Period:
+	 *  If Type = 0: Year for games to load
+	 *  If Type = 1: Last X games for this team
+	 * Stats:
+	 *  Whether to calculate stats for teams
+	 */
+	function loadTeamArray($dbConn, $type, $period, $stats) {
 		// Prep Queries
 		$loadQuery = 'SELECT 
 						id, displayName, shortDisplayName, abbreviation, comedyName 
 						FROM teams';
-		$gamesQuery = 'SELECT 
-						* 
-						FROM games WHERE 
-						completed = 1';
+		switch($type) {
+			case 0:
+				$gamesQuery = 'SELECT 
+								* 
+								FROM games WHERE 
+								completed = 1 AND year = ? ORDER BY date DESC';
+				$gamesArray = array($period);
+				break;
+		}
 		
 		// Get teams from SQL
 		$teamRsrc = sqlsrv_query($dbConn, $loadQuery);
@@ -95,17 +110,21 @@
 		while($team = sqlsrv_fetch_array($teamRsrc)) {
 			$teams[$team['id']] = new team($team['id'], $team['displayName'], $team['shortDisplayName'], $team['abbreviation'], $team['comedyName']);
 		}
-		// Add the all teams
-		$teams[-1] = new team(-1, 'All Teams', 'All Teams', 'ALLT', NULL);
+		// Add the all teams if we're collecting stats
+		if($stats == 1) {
+			$teams[-1] = new team(-1, 'All Teams', 'All Teams', 'ALLT', NULL);
+		}
 
 		// Get games from SQL
-		$gameRsrc = sqlsrv_query($dbConn, $gamesQuery);
+		$gameRsrc = sqlsrv_query($dbConn, $gamesQuery, $gamesArray);
 		
 		// Proceed through the list
 		while($game = sqlsrv_fetch_array($gameRsrc)) {
-			$teams[$game['homeId']]->addGame($game);
-			$teams[$game['awayId']]->addGame($game);
-			$teams[-1]->addGame($game);
+			$teams[$game['homeId']]->addGame($game, $stats);
+			$teams[$game['awayId']]->addGame($game, $stats);
+			if($stats == 1) {										// No reason to do this if we're not collecting stats
+				$teams[-1]->addGame($game, $stats);
+			}
 		}
 
 		return $teams;

@@ -1,6 +1,9 @@
 <?php
-	ini_set("memory_limit", "256M");
 	header('Content-Type: application/json; charset=utf-8');
+
+	// Load functions, connect to DB
+	require('../phpFunctions/functions.php');
+	$dbConn = sqlConnect();
 
 	function setPick($dbConn) {
 		// Set up queries
@@ -60,12 +63,11 @@
 	}
 
 	function updatePicks($dbConn) {
-		echo json_encode(loadPicks($dbConn, $_GET['year'], $_GET['week']));
+		$teamArray = loadTeamArray($dbConn, 0, $_GET['year'], 0);
+		echo json_encode(loadPicks($dbConn, $teamArray, $_GET['year'], $_GET['week']));
 	}
 	
-	// Load functions, connect to DB
-	require('../functions.php');
-	$dbConn = sqlConnect();
+
 
 	switch($_GET['function']) {
 		case 'setPick':

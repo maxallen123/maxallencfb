@@ -1,7 +1,7 @@
 <html>
     <body bgcolor='#888888'>
 <?php
-    require('functions.php');
+    require('phpFunctions/functions.php');
 
     $dbConn = sqlConnect();
 
