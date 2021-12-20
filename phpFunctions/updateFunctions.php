@@ -53,8 +53,9 @@
 					awayPossessionTime        = ?, 	-- 47
 					favorite                  = ?,  -- 48
 					underdog                  = ?,  -- 49
-					spread                    = ?   -- 50
-				WHERE id = ?						-- 51';
+					spread                    = ?,  -- 50
+					href                      = ?   -- 51
+				WHERE id = ?						-- 52';
 	}
 
 // Return basic info on team
@@ -242,6 +243,13 @@
 		return $queryArray;
 	}
 
+// Get and set the link for the game
+	function updateLink($sbGame, $queryArray) {
+		$queryArray[51] = $sbGame->links[0]->href;
+
+		return $queryArray;
+	}
+
 // Get final lines from event
 	function updateFinalLine($evtGame, $queryArray) {
 		if(isset($evtGame->pickcenter[0]->spread)) {
@@ -353,6 +361,7 @@
 				$queryArray = updateRanks($sbGame, $queryArray);
 				$queryArray = updateSpreadPregame($dbConn, $sbGame, $queryArray);
 				$queryArray = updateGameType($sbGame, $queryArray);
+				$queryArray = updateLink($sbGame, $queryArray);
 				break;
 			case 2:			// Game is in progress
 				$queryArray = updateDateNameNetwork($sbGame, $queryArray);
@@ -361,6 +370,7 @@
 				$queryArray = copySpread($sqlGame, $queryArray);
 				$queryArray = updateScore($sbGame, $queryArray);
 				$queryArray = updateGameType($sbGame, $queryArray);
+				$queryArray = updateLink($sbGame, $queryArray);
 				break;
 			case 3:			// Game final
 				$queryArray = updateDateNameNetwork($sbGame, $queryArray);
@@ -370,6 +380,7 @@
 				$queryArray = updateScore($sbGame, $queryArray);
 				$queryArray = determineWinner($sbGame, $queryArray);
 				$queryArray = updateFinalGameStats($sbGame, $queryArray);
+				$queryArray = updateLink($sbGame, $queryArray);
 
 				break;
 			case 4:			// Forfeit
@@ -380,6 +391,7 @@
 				$queryArray = setCancelled($sbGame, $queryArray);
 				$queryArray = determineWinner($sbGame, $queryArray);
 				$queryArray = updateGameType($sbGame, $queryArray);
+				$queryArray = updateLink($sbGame, $queryArray);
 
 				break;
 			default:		// Cancelled or Postponed (we treat both of these as cancelled)
@@ -389,6 +401,7 @@
 				$queryArray = copySpread($sqlGame, $queryArray);
 				$queryArray = setCancelled($sbGame, $queryArray);
 				$queryArray = updateGameType($sbGame, $queryArray);
+				$queryArray = updateLink($sbGame, $queryArray);
 
 				break;
 		}

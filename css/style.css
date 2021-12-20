@@ -63,6 +63,10 @@ span.leader, td.leader {
 	--bs-table-striped-color: #555555;
 }
 
+.WLorPoints{
+	text-align: right;
+}
+
 .spread {
 	text-align: right;
 }
@@ -85,4 +89,14 @@ span.leader, td.leader {
 .leader.uid-3, .pick-leader.uid-3 {
 	--bs-table-bg: #003f00; 
 	--bs-table-striped-bg: #005f00;
+}
+
+a {
+	color: white;
+	text-decoration: none;
+}
+
+a:hover {
+	color: white;
+	text-decoration: underline;
 }

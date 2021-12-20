@@ -70,7 +70,7 @@
 								<?= $game->day ?>
 							</td>
 							<td id="name-<?= $game->id ?>">
-								<?= $game->name ?>
+								<a target="_blank" href="<?= $game->href ?>"><?= $game->name ?></a>
 							</td>
 							<td id="time-<?= $game->id ?>" class="time">
 								<?= $game->time ?>
@@ -84,16 +84,16 @@
 							<td id="logoFav-<?= $game->id ?>">
 								<img height="25" width="25" src="<?=fetchLogo($dbConn, $game->tableFav)?>">
 							</td>
-							<td id="nameFav-<?= $game->id ?>"><?= $teamArray[$game->tableFav]->displayName ?></td>
-							<td id="WLorPointsFav-<?= $game->id ?>"></td>
+							<td id="nameFav-<?= $game->id ?>"><a target="_blank" href="<?= fetchClubhouse($dbConn, $game->tableFav) ?>"><?= $teamArray[$game->tableFav]->displayName ?></a></td>
+							<td class="WLorPoints" id="WLorPointsFav-<?= $game->id ?>"></td>
 							<td id="rankDog-<?= $game->id ?>" class="rank">
 								<?= $game->rankDog ?>
 							</td>
 							<td id="logoDog-<?= $game->id ?>">
 								<img height="25" width="25" src="<?=fetchLogo($dbConn, $game->tableDog)?>">
 							</td>
-							<td id="nameDog-<?= $game->id ?>"><?= $teamArray[$game->tableDog]->displayName ?></td>
-							<td id="WLorPointsDog-<?= $game->id ?>">
+							<td id="nameDog-<?= $game->id ?>"><a target="_blank" href="<?= fetchClubhouse($dbConn, $game->tableDog) ?>"><?= $teamArray[$game->tableDog]->displayName ?></a></td>
+							<td class="WLorPoints" id="WLorPointsDog-<?= $game->id ?>">
 							</td>
 							<td class="spread" id="spread-<?= $game->id ?>">
 								<?= formatSpread($game->spread) ?>

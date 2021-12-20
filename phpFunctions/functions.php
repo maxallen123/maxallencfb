@@ -146,6 +146,7 @@
 			foreach($game as $columnKey => $value) {
 				$this->$columnKey = $value;
 			}
+
 			$this->day       = $game['date']->format('n/j');
 			$this->time      = $game['date']->format('g:i A');
 
@@ -180,7 +181,7 @@
 	function loadGames($dbConn, $year, $week) {
 		// Set up query strings
 		$loadGamesQuery = 'SELECT 
-							id, date, name, homeId, awayId, favorite, underdog, spread, network, homeRank, awayRank, winnerId, homeScore, awayScore, status 
+							id, date, name, homeId, awayId, favorite, underdog, spread, network, homeRank, awayRank, winnerId, homeScore, awayScore, status, href
 							FROM games WHERE
 							week = ? AND year = ?
 							ORDER BY DATE DESC';
@@ -203,18 +204,6 @@
 		}
 		$gameArray[$last]->last = 0;
 		return $gameArray;
-	}
-
-	function fetchLogo($dbConn, $teamId) {
-		// Query
-		$logoQuery = "SELECT 
-						href
-						FROM teamLogos WHERE
-						desc_2 = 'dark' AND teamId = ?";
-		
-		$logo = sqlsrv_query($dbConn, $logoQuery, array($teamId));
-		
-		return sqlsrv_fetch_array($logo)['href'];
 	}
 
 	function loadPicks($dbConn, $teamArray, $year, $week) {
@@ -257,7 +246,6 @@
 				$picksArray[$pick['gameId']][$pick['userId']] = $pick['pick'];
 			}
 		}
-
 
 		return $picksArray;
 	}
